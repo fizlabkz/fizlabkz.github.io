@@ -556,10 +556,51 @@ EXP.polaris={title:'Поляр жұлдызы және географиялық 
     const f=e=>{const a=e.accelerationIncludingGravity;if(!a||a.x==null)return;const v=elevOfTopEdge(a);h=h==null?v:h+(v-h)*.15;set('h',h);if(col)col.push(v);};
     return {motion:1,start(){h=null;return Motion.sub(f);},stop(){Motion.unsub(f);},frame(){}};}};
 
+/* ---------- САЛМАҚ ТАҚЫРЫБЫ (v2.2) ---------- */
+/* еркін ұшу (|a| ≈ 0) аралығын табатын көмекші */
+function FlightDetector(thr,onDone){let t1=null;return {push(t,n){if(n<thr){if(t1==null)t1=t;}else if(t1!=null){const dt=t-t1;t1=null;if(dt>.06&&dt<3)onDone(dt);}},get flying(){return t1!=null;}};}
+
+EXP.freefall={title:'Салмақсыздық (еркін түсу)',grade:'9–10 сынып · салмақ, салмақсыздық',icon:'P=0',
+  theory:'<p>Дене тек ауырлық күшінің әсерімен қозғалғанда (еркін түсу) ол тірекке де, аспаға да әсер етпейді: оның салмағы нөлге тең. Бұл — салмақсыздық. Телефонның акселерометрі салмақты «сезеді», сондықтан еркін түсу кезінде ол |a| ≈ 0 көрсетеді. Жоғары лақтырылған дене де ұшып жүрген бүкіл уақытта (көтерілгенде де, түскенде де) салмақсыз күйде болады.</p><p class="formula">P = m(g − a), еркін түсуде a = g ⇒ P = 0;&nbsp;&nbsp; h = g·t² / 2</p>',
+  steps:['Еденге жастық немесе қалың көрпе қойыңыз. «Бастау» басыңыз: тыныш тұрғанда |a| ≈ 9,8 м/с².','Телефонды жастықтың үстінен 30–50 см биіктіктен құлатыңыз. Графикте |a| нөлге дейін түскен аралық — салмақсыздық.','Қосымша салмақсыздық уақытын t өлшеп, құлау биіктігін h = gt²/2 бойынша есептейді. Оны сызғышпен өлшенген биіктікпен салыстырыңыз.','Телефонды жоғары ақырын лақтырып, қайта ұстап алыңыз: көтерілгенде де салмақсыздық болатынын графиктен көріңіз.'],
+  build(root){const M=numInput(root,'Телефонның массасы m','0.20','кг');
+    const set=readouts(root,[{id:'a',label:'|a| (сезілетін үдеу)',unit:'м/с²',dig:2},{id:'P',label:'Телефонның салмағы P',unit:'Н',big:1,dig:2},{id:'t',label:'Салмақсыздық уақыты t',unit:'с',big:1,dig:3},{id:'h',label:'Құлау биіктігі h = gt²/2',unit:'см',dig:1},{id:'v',label:'Соңғы жылдамдық v = gt',unit:'м/с',dig:2}]);
+    const st=el('div','status');root.appendChild(st);const gr=new Graph(root,[{name:'|a|',color:C.n},{name:'g',color:'#AFC8D8'}],{unit:'м/с²',win:6});const log=logBox(root);
+    const fd=FlightDetector(2.5,dt=>{const h=9.81*dt*dt/2;set('t',dt);set('h',h*100);set('v',9.81*dt);log.add(`t = ${dt.toFixed(3)} с · h = ${(h*100).toFixed(1)} см · v = ${(9.81*dt).toFixed(2)} м/с`);});
+    const f=e=>{const a=e.accelerationIncludingGravity;if(!a||a.x==null)return;const n=Math.hypot(a.x,a.y,a.z),t=performance.now()/1000;fd.push(t,n);set('a',n);set('P',M()*n);
+      st.textContent=fd.flying?'Салмақсыздық!':'';gr.push(t,[n,9.81]);};
+    return {motion:1,start(){gr.clear();return Motion.sub(f);},stop(){Motion.unsub(f);st.textContent='';},frame(){gr.draw();}};}};
+
+EXP.jump={title:'Секіру кезіндегі салмақ және жүктелу',grade:'9–10 сынып · салмақ, асқын салмақ',icon:'n',
+  theory:'<p>Адам секірерде еденді күшпен итереді: осы сәтте оның салмағы артады (асқын салмақ). Ауада ұшып жүргенде салмағы нөлге тең (салмақсыздық), ал жерге қонғанда қайтадан артады. Салмақтың ауырлық күшінен неше есе артық екенін <b>жүктелу</b> n дейді. Ұшу уақытынан секіру биіктігін табуға болады.</p><p class="formula">n = P / (mg) = |a| / g,&nbsp;&nbsp; h = g·t²ұшу / 8</p>',
+  steps:['Өз массаңызды енгізіңіз. Телефонды кеуде тұсында екі қолмен мықтап ұстаңыз немесе қалтаға салыңыз да, «Бастау» басыңыз.','Тік тұрып, бір рет орнында жоғары секіріңіз. Графикте итеру (n > 1), ұшу (n ≈ 0) және қону (n > 1) кезеңдері көрінеді.','Қосымша ең үлкен жүктелуді, ең үлкен салмақты, ұшу уақытын және секіру биіктігін көрсетеді.','Отырып-тұрып көріңіз: тез отырғанда салмақ азаяды, тез тұрғанда артады. Жұмсақ және қатты қонуды салыстырыңыз.'],
+  build(root){const M=numInput(root,'Масса m','50','кг');
+    const set=readouts(root,[{id:'n',label:'Жүктелу n = |a|/g',unit:'',big:1,dig:2},{id:'P',label:'Салмақ P',unit:'Н',dig:0},{id:'nx',label:'n максимум',unit:'',dig:2},{id:'Px',label:'P максимум',unit:'Н',dig:0},{id:'t',label:'Ұшу уақыты',unit:'с',dig:3},{id:'h',label:'Секіру биіктігі h',unit:'см',big:1,dig:1}]);
+    const ctrl=el('div','ctrl');const clr=button(ctrl,'Нөлдеу');root.appendChild(ctrl);
+    const gr=new Graph(root,[{name:'n',color:'#2F6FB5'},{name:'n = 1',color:'#AFC8D8'}],{unit:'',win:6});const log=logBox(root);let nx=0;
+    clr.onclick=()=>{nx=0;set('nx',null);set('Px',null);};
+    const fd=FlightDetector(3,dt=>{if(dt<.15)return;const h=9.81*dt*dt/8;set('t',dt);set('h',h*100);log.add(`ұшу ${dt.toFixed(3)} с · h = ${(h*100).toFixed(1)} см · n макс = ${nx.toFixed(2)}`);});
+    const f=e=>{const a=e.accelerationIncludingGravity;if(!a||a.x==null)return;const m=Math.hypot(a.x,a.y,a.z),t=performance.now()/1000,n=m/9.81;fd.push(t,m);
+      if(n>nx)nx=n;set('n',n);set('P',M()*m);set('nx',nx);set('Px',M()*9.81*nx);gr.push(t,[n,1]);};
+    return {motion:1,start(){nx=0;gr.clear();return Motion.sub(f);},stop(){Motion.unsub(f);},frame(){gr.draw();}};}};
+
+EXP.swing={title:'Әткеншектегі салмақ',grade:'9 сынып · шеңбер бойымен қозғалыс, салмақ',icon:'R',
+  theory:'<p>Әткеншек шеңбер доғасымен қозғалады. Ең төменгі нүктеде центрге тартқыш үдеу жоғары қарай бағытталады, сондықтан әткеншектегі адамның салмағы артады. Шеткі нүктелерде жылдамдық нөлге тең болып, салмақ азаяды. Төменгі нүктедегі салмақтан әткеншектің жылдамдығын табуға болады.</p><p class="formula">P = m(g + v²/R) &nbsp;⇒&nbsp; v = √((|a|макс − g)·R)</p>',
+  steps:['Әткеншек жібінің (шынжырының) ұзындығын R — ілу нүктесінен отырғышқа дейін — өлшеп, енгізіңіз. Массаңызды да енгізіңіз.','Телефонды қалтаға салыңыз немесе тізеңізге мықтап ұстаңыз да, «Бастау» басыңыз.','Әткеншекті тербеңіз. Графикте салмақтың әр тербелісте екі рет (төменгі нүктеде) артатыны көрінеді.','Ең үлкен салмақтан төменгі нүктедегі жылдамдықты есептеңіз. Тербеліс периодын да графиктен бағалаңыз.'],
+  build(root){const R=numInput(root,'Жіптің ұзындығы R','2.0','м'),M=numInput(root,'Масса m','40','кг');
+    const set=readouts(root,[{id:'n',label:'Жүктелу n = |a|/g',unit:'',dig:2},{id:'P',label:'Салмақ P',unit:'Н',dig:0},{id:'Px',label:'Ең үлкен салмақ (төменгі нүкте)',unit:'Н',big:1,dig:0},{id:'Pn',label:'Ең кіші салмақ (шеткі нүкте)',unit:'Н',dig:0},{id:'v',label:'Төменгі нүктедегі жылдамдық v',unit:'м/с',big:1,dig:2},{id:'T',label:'Тербеліс периоды T',unit:'с',dig:2}]);
+    const ctrl=el('div','ctrl');const clr=button(ctrl,'Нөлдеу');root.appendChild(ctrl);const gr=new Graph(root,[{name:'|a|',color:'#2F6FB5'},{name:'g',color:'#AFC8D8'}],{unit:'м/с²',win:10});
+    const P=new Period(.4);let s=null,ax=0,an=1e9;clr.onclick=()=>{ax=0;an=1e9;P.reset();};
+    const f=e=>{const a=e.accelerationIncludingGravity;if(!a||a.x==null)return;const m=Math.hypot(a.x,a.y,a.z),t=performance.now()/1000;s=s==null?m:s+(m-s)*.25;
+      ax=Math.max(ax,s);an=Math.min(an,s);P.push(t,s);set('n',s/9.81);set('P',M()*s);set('Px',M()*ax);set('Pn',M()*an);set('v',ax>9.81?Math.sqrt((ax-9.81)*R()):0);
+      const T=P.T;set('T',T?2*T:null);gr.push(t,[s,9.81]);};
+    return {motion:1,start(){s=null;ax=0;an=1e9;P.reset();gr.clear();return Motion.sub(f);},stop(){Motion.unsub(f);},frame(){gr.draw();}};}};
+
 /* Android қосымшасында (App Inventor) магнитометр, жарық датчигі мен барометр қосылады; браузерде (айфон) олар жоқ */
 const IN_APP=Bridge.ok();
 const SECTIONS=[
-  {name:'Механика',c:'#2F6FB5',items:['acc','centr','watch','incline','lift','gps']},
+  {name:'Механика',c:'#2F6FB5',items:['acc','centr','watch','incline','gps']},
+  {name:'Салмақ және салмақсыздық',c:'#3A5BA0',items:['lift','freefall','jump','swing']},
   {name:'Тербелістер мен толқындар',c:'#3C8D4A',items:['pend','spring','scope','spec','beats','doppler','db']},
   {name:'Электр және магнетизм',c:'#C8393B',items:IN_APP?['mag','compass']:['compass']},
   {name:'Молекулалық физика',c:'#7B4FA3',items:IN_APP?['baro','sndtemp']:['sndtemp']},
@@ -620,7 +661,7 @@ function about(){stopCurrent();document.getElementById('back').style.display='bl
     <p>Бір рет ашылған соң бағдарлама интернетсіз жұмыс істейді, сондықтан желісі нашар ауылдық мектептерде де қолдануға болады.</p></details>
   <details><summary>Шектеулер</summary>
     <ul><li>Датчиктер жиынтығы телефон моделіне тәуелді: кейбір телефондарда барометр немесе гироскоп болмауы мүмкін.</li><li>Айфонның браузері магнитометр, жарық датчигі мен барометрді ашпайды, сондықтан бұл үш тәжірибе тек Android қосымшасында бар.</li><li>Телефон микрофоны мен камерасы калибрленбеген, сондықтан дыбыс деңгейі мен жарықталу салыстырмалы бірлікпен беріледі.</li></ul></details>
-  <p class="hint">Нұсқа 2.1 · 2026</p></div>`;
+  <p class="hint">Нұсқа 2.2 · 2026</p></div>`;
   window.scrollTo(0,0);}
 document.getElementById('info').onclick=about;
 
