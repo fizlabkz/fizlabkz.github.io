@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="color-scheme" content="light">
+<title>FizLabKZ — физика зертханасы</title>
+<meta name="theme-color" content="#EEF3F6">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="FizLabKZ">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+:root{
+  --paper:#EEF3F6; --sheet:#FFFFFF; --ink:#1E2A44; --muted:#5E6B80;
+  --grid:#D3E2EC; --grid2:#AFC8D8; --line:#D9E1E8;
+  --blue:#2F6FB5; --red:#C8393B; --green:#3C8D4A; --violet:#7B4FA3; --ochre:#C98A1B;
+  --sec:var(--blue);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--paper);color:var(--ink);font-family:system-ui,Roboto,"Segoe UI",sans-serif;font-size:16px;line-height:1.45}
+body{padding-bottom:40px}
+button,input{font:inherit;color:inherit}
+header{position:sticky;top:0;z-index:5;background:var(--paper);border-bottom:2px solid var(--ink);padding:12px 16px;display:flex;align-items:center;gap:12px}
+header h1{font-family:"Noto Serif",Georgia,serif;font-size:1.15rem;font-weight:700;letter-spacing:.01em}
+header p{font-size:.8rem;color:var(--muted)}
+#back{display:none;border:2px solid var(--ink);background:var(--sheet);width:40px;height:40px;border-radius:50%;font-size:1.2rem;line-height:1}
+main{max-width:640px;margin:0 auto;padding:16px}
+
+/* home */
+.sec{margin:6px 0 22px}
+.sec h2{font-family:"Noto Serif",Georgia,serif;font-size:1.3rem;border-left:6px solid var(--c);padding-left:10px;margin-bottom:10px}
+.sec .note{font-size:.85rem;color:var(--muted);margin:-4px 0 10px 16px}
+.item{display:flex;width:100%;text-align:left;align-items:center;gap:12px;background:var(--sheet);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:8px}
+.item .ic{flex:0 0 42px;height:42px;border-radius:8px;display:grid;place-items:center;font-weight:700;color:#fff;background:var(--c);font-size:.8rem;text-align:center;line-height:1.1}
+.item b{display:block;font-size:1rem}
+.item span{font-size:.82rem;color:var(--muted)}
+
+/* experiment */
+.exp h2{font-family:"Noto Serif",Georgia,serif;font-size:1.45rem;line-height:1.25;margin-bottom:4px}
+.exp .meta{font-size:.85rem;color:var(--muted);margin-bottom:12px}
+details{background:var(--sheet);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:10px}
+summary{font-weight:600;cursor:pointer}
+details p,details li{font-size:.92rem;margin-top:6px}
+details ol{padding-left:20px}
+.formula{font-family:"Noto Serif",Georgia,serif;font-style:italic;background:var(--paper);border-radius:6px;padding:4px 8px;display:inline-block;margin-top:6px}
+.ctrl{display:flex;gap:8px;margin:12px 0 8px;flex-wrap:wrap}
+.btn{border:2px solid var(--ink);background:var(--sheet);border-radius:999px;padding:10px 18px;font-weight:600}
+.btn.main{background:var(--sec);border-color:var(--sec);color:#fff;flex:1}
+.btn.main.on{background:var(--ink);border-color:var(--ink)}
+.btn:disabled{opacity:.4}
+.status{font-size:.85rem;color:var(--muted);min-height:1.2em;margin-bottom:8px}
+.status.err{color:var(--red);font-weight:600}
+.ro-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:10px}
+.ro{background:var(--sheet);border:1px solid var(--line);border-top:4px solid var(--sec);border-radius:8px;padding:8px 10px}
+.ro-l{font-size:.78rem;color:var(--muted)}
+.ro-v span{font-size:1.5rem;font-weight:700;font-variant-numeric:tabular-nums}
+.ro-v small{font-size:.8rem;color:var(--muted);margin-left:4px}
+.ro.big .ro-v span{font-size:2rem;color:var(--sec)}
+canvas{display:block;width:100%;background:var(--sheet);border:1px solid var(--grid2);border-radius:8px;margin-bottom:6px}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:.8rem;margin-bottom:12px}
+.legend i{display:inline-block;width:14px;height:4px;border-radius:2px;margin-right:4px;vertical-align:middle}
+.inp{display:flex;align-items:center;gap:8px;background:var(--sheet);border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin-bottom:8px}
+.inp span{flex:1;font-size:.9rem}
+.inp input{width:96px;border:none;border-bottom:2px solid var(--sec);background:transparent;text-align:right;font-size:1.1rem;font-weight:600;padding:2px}
+.inp em{font-style:normal;color:var(--muted);width:40px;font-size:.85rem}
+.chk{display:flex;align-items:center;gap:10px;font-size:.9rem;margin-bottom:8px}
+.chk input{width:20px;height:20px;accent-color:var(--sec)}
+.level{height:10px;background:var(--paper);border-radius:5px;overflow:hidden;margin-bottom:10px;position:relative}
+.level div{height:100%;width:0;background:var(--sec)}
+.level s{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--red)}
+.log{background:var(--sheet);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:.9rem;font-variant-numeric:tabular-nums}
+.log div{padding:3px 0;border-bottom:1px dashed var(--line)}
+.log div:last-child{border:none}
+.hint{font-size:.82rem;color:var(--muted);margin:4px 0 10px}
+.swatch{height:44px;border-radius:8px;border:1px solid var(--grid2);margin-bottom:10px}
+.status.info{color:var(--green);font-weight:600}
+.install{background:var(--sheet);border:2px dashed var(--blue);border-radius:10px;padding:10px 14px;font-size:.88rem;margin-bottom:16px}
+.install b{display:block;margin-bottom:2px}
+header{padding-top:max(12px,env(safe-area-inset-top))}
+input[type=range]{width:100%;accent-color:var(--sec);margin-bottom:10px}
+</style>
+</head>
+<body>
+<header>
+  <button id="back" aria-label="Артқа">‹</button>
+  <div><h1 id="htitle">Физика зертханасы</h1><p id="hsub">Qyzyqty Fizika · смартфон датчиктерімен өлшеу</p></div>
+</header>
+<main id="app"></main>
+
+<script>
+"use strict";
+/* ---------- helpers ---------- */
+const $app=document.getElementById('app');
+function el(tag,cls,html){const e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;return e;}
+function fmt(v,d){return (v==null||!isFinite(v))?'—':v.toFixed(d);}
+const DEG=Math.PI/180;
+
+/* ---------- graph on millimetre paper ---------- */
+class Graph{
+  constructor(parent,series,opt){
+    opt=opt||{};this.series=series;this.win=opt.win||10;this.unit=opt.unit||'';
+    this.c=el('canvas');this.c.style.height=(opt.h||200)+'px';parent.appendChild(this.c);
+    if(series.length>1||series[0].name){const lg=el('div','legend');series.forEach(s=>{lg.appendChild(el('span','',`<i style="background:${s.color}"></i>${s.name}`));});parent.appendChild(lg);}
+    this.ctx=this.c.getContext('2d');this.clear();
+  }
+  size(){const r=this.c.getBoundingClientRect(),d=window.devicePixelRatio||1;
+    if(this.c.width!==Math.round(r.width*d)){this.c.width=Math.round(r.width*d);this.c.height=Math.round(r.height*d);}
+    this.ctx.setTransform(d,0,0,d,0,0);this.w=r.width;this.h=r.height;}
+  clear(){this.t=[];this.d=this.series.map(()=>[]);this.dirty=true;}
+  push(t,vals){this.t.push(t);vals.forEach((v,i)=>this.d[i].push(v));
+    while(this.t.length&&this.t[0]<t-this.win){this.t.shift();this.d.forEach(a=>a.shift());}this.dirty=true;}
+  paper(){const g=this.ctx,w=this.w,h=this.h;g.clearRect(0,0,w,h);
+    for(let x=0;x<w;x+=8){g.strokeStyle=(x%40===0)?'#AFC8D8':'#E2ECF2';g.lineWidth=1;g.beginPath();g.moveTo(x+.5,0);g.lineTo(x+.5,h);g.stroke();}
+    for(let y=0;y<h;y+=8){g.strokeStyle=(y%40===0)?'#AFC8D8':'#E2ECF2';g.beginPath();g.moveTo(0,y+.5);g.lineTo(w,y+.5);g.stroke();}}
+  draw(){if(!this.dirty)return;this.dirty=false;this.size();this.paper();
+    const g=this.ctx,w=this.w,h=this.h,n=this.t.length;if(n<2)return;
+    let mn=Infinity,mx=-Infinity;this.d.forEach(a=>a.forEach(v=>{if(isFinite(v)){if(v<mn)mn=v;if(v>mx)mx=v;}}));
+    if(!isFinite(mn))return;if(mx-mn<1e-6){mx+=.5;mn-=.5;}const pad=(mx-mn)*.1;mn-=pad;mx+=pad;
+    const t0=this.t[n-1]-this.win,X=t=>(t-t0)/this.win*w,Y=v=>h-(v-mn)/(mx-mn)*h;
+    if(mn<0&&mx>0){g.strokeStyle='#1E2A44';g.lineWidth=1;g.beginPath();g.moveTo(0,Y(0));g.lineTo(w,Y(0));g.stroke();}
+    this.d.forEach((a,i)=>{g.strokeStyle=this.series[i].color;g.lineWidth=2;g.beginPath();
+      for(let k=0;k<n;k++){const x=X(this.t[k]),y=Y(a[k]);k?g.lineTo(x,y):g.moveTo(x,y);}g.stroke();});
+    g.fillStyle='#1E2A44';g.font='11px system-ui';g.fillText(mx.toFixed(2)+' '+this.unit,4,12);g.fillText(mn.toFixed(2),4,h-4);
+    g.fillText(this.win+' с',w-28,h-4);}
+}
+
+/* scatter plot with fit through origin: y = k·x */
+class Scatter{
+  constructor(parent,opt){this.opt=opt;this.c=el('canvas');this.c.style.height=(opt.h||220)+'px';parent.appendChild(this.c);this.ctx=this.c.getContext('2d');this.pts=[];this.dirty=true;}
+  add(x,y){this.pts.push([x,y]);this.dirty=true;}
+  clear(){this.pts=[];this.dirty=true;}
+  get k(){let sxy=0,sxx=0;this.pts.forEach(([x,y])=>{sxy+=x*y;sxx+=x*x;});return sxx>0?sxy/sxx:null;}
+  draw(){if(!this.dirty)return;this.dirty=false;Graph.prototype.size.call(this);Graph.prototype.paper.call(this);
+    const g=this.ctx,w=this.w,h=this.h,m=28;g.fillStyle='#1E2A44';g.font='11px system-ui';
+    g.fillText(this.opt.ylab,4,12);g.fillText(this.opt.xlab,w-g.measureText(this.opt.xlab).width-4,h-4);
+    g.strokeStyle='#1E2A44';g.lineWidth=1.5;g.beginPath();g.moveTo(m,4);g.lineTo(m,h-m);g.lineTo(w-4,h-m);g.stroke();
+    if(!this.pts.length)return;let mx=0,my=0;this.pts.forEach(([x,y])=>{mx=Math.max(mx,x);my=Math.max(my,y);});mx*=1.1;my*=1.1;
+    const X=x=>m+x/mx*(w-m-8),Y=y=>h-m-y/my*(h-m-8);const k=this.k;
+    if(k!=null){g.strokeStyle=this.opt.color;g.setLineDash([6,4]);g.beginPath();g.moveTo(X(0),Y(0));g.lineTo(X(mx),Y(k*mx));g.stroke();g.setLineDash([]);}
+    g.fillStyle=this.opt.color;this.pts.forEach(([x,y])=>{g.beginPath();g.arc(X(x),Y(y),3.5,0,7);g.fill();});
+    g.fillStyle='#1E2A44';g.fillText(mx.toPrecision(3),w-40,h-m+14);g.fillText(my.toPrecision(3),m+4,14);}
+}
+
+/* ---------- UI builders ---------- */
+function readouts(parent,defs){const g=el('div','ro-grid'),map={};
+  defs.forEach(d=>{const b=el('div','ro'+(d.big?' big':''),`<div class="ro-l">${d.label}</div><div class="ro-v"><span>—</span><small>${d.unit||''}</small></div>`);g.appendChild(b);map[d.id]=[b.querySelector('span'),d.dig==null?2:d.dig];});
+  parent.appendChild(g);return (id,v)=>{const [s,dg]=map[id];s.textContent=fmt(v,dg);};}
+function numInput(parent,label,val,unit){const w=el('label','inp',`<span>${label}</span><input type="number" step="any" inputmode="decimal" value="${val}"><em>${unit}</em>`);parent.appendChild(w);const i=w.querySelector('input');return ()=>parseFloat(String(i.value).replace(',','.'));}
+function checkbox(parent,label){const w=el('label','chk',`<input type="checkbox"> ${label}`);parent.appendChild(w);return w.querySelector('input');}
+function button(parent,text,cls){const b=el('button','btn'+(cls?' '+cls:''),text);parent.appendChild(b);return b;}
+
+/* ---------- sensors ---------- */
+const Motion={subs:new Set(),last:0,on:false,
+  handler(e){Motion.last=performance.now();Motion.subs.forEach(f=>f(e));},
+  async sub(f){if(window.DeviceMotionEvent&&typeof DeviceMotionEvent.requestPermission==='function'){let r='granted';try{r=await DeviceMotionEvent.requestPermission();}catch(e){}
+      if(r!=='granted')throw uerr('Қозғалыс датчигіне рұқсат берілмеді. Safari-ді толық жауып, бетті қайта ашып, «Рұқсат ету» басыңыз.');}
+    this.subs.add(f);if(!this.on){window.addEventListener('devicemotion',this.handler);this.on=true;}},
+  unsub(f){this.subs.delete(f);}};
+
+const Mic={ctx:null,stream:null,src:null,
+  async open(){if(this.ctx){await this.ctx.resume();return;}
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw uerr('Бұл браузерде микрофон қолжетімсіз. Бетті https:// арқылы ашыңыз.');
+    const ctx=new (window.AudioContext||window.webkitAudioContext)();ctx.resume();
+    try{this.stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});}
+    catch(e){ctx.close();throw uerr('Микрофонға рұқсат берілмеді. Телефон баптауларынан осы бет үшін микрофон рұқсатын қосыңыз.');}
+    this.ctx=ctx;await ctx.resume();this.src=this.ctx.createMediaStreamSource(this.stream);},
+  close(){if(this.stream)this.stream.getTracks().forEach(t=>t.stop());if(this.ctx)this.ctx.close();this.ctx=this.stream=this.src=null;}};
+
+/* App Inventor bridge: WebViewString = "Bx,By,Bz;lux;hPa" */
+const Bridge={
+  ok(){return !!(window.AppInventor&&window.AppInventor.getWebViewString);},
+  raw(){if(!this.ok())return null;try{return String(window.AppInventor.getWebViewString()||'');}catch(e){return null;}},
+  read(){const s=this.raw();if(s==null)return null;
+    const p=s.split(/[;,]/).map(x=>parseFloat(String(x).trim().replace(/\s/g,''))),m=p.slice(0,3);
+    return {mag:(m.length===3&&m.every(isFinite))?m:null,lux:p[3],hpa:p[4]};},
+  diag(){const s=this.raw();if(s==null)return ' (Қосымша App Inventor-ден тыс ашылған.)';return s?' Келген дерек: «'+s.slice(0,80)+'»':' Блоктардан ешқандай дерек келмей тұр (Clock1.Timer жұмыс істемейді).';}};
+
+/* period from zero crossings with hysteresis */
+class Period{
+  constructor(minAmp){this.minAmp=minAmp;this.reset();}
+  reset(){this.buf=[];this.lastUp=null;this.ps=[];this.st=0;this.amp=0;}
+  push(t,v){this.buf.push([t,v]);while(this.buf[0][0]<t-4)this.buf.shift();
+    let s=0,mx=-Infinity,mn=Infinity;for(const b of this.buf){s+=b[1];if(b[1]>mx)mx=b[1];if(b[1]<mn)mn=b[1];}
+    const mean=s/this.buf.length;this.amp=(mx-mn)/2;if(this.amp<this.minAmp)return;
+    const d=v-mean,hy=this.amp*.25;
+    if(this.st<=0&&d>hy){if(this.st===-1){if(this.lastUp!=null){const p=t-this.lastUp;if(p>.12&&p<20){this.ps.push(p);if(this.ps.length>12)this.ps.shift();}}this.lastUp=t;}this.st=1;}
+    else if(this.st>=0&&d<-hy)this.st=-1;}
+  get T(){if(this.ps.length<2)return null;const s=[...this.ps].sort((a,b)=>a-b);return s[Math.floor(s.length/2)];}}
+
+/* ---------- experiments ---------- */
+const C={x:'#C8393B',y:'#3C8D4A',z:'#2F6FB5',n:'#1E2A44'};
+const EXP={};
+
+EXP.acc={title:'Үдеу (акселерометр)',grade:'7–10 сынып · механика',icon:'a',
+  theory:'<p>Акселерометр телефонның үш осі бойынша үдеуін өлшейді. Телефон тыныш жатқанда да ол шамамен 9,8 м/с² көрсетеді, себебі датчик ауырлық күшінің әсерін сезеді.</p><p class="formula">|a| = √(aₓ² + a_y² + a_z²)</p>',
+  steps:['Телефонды үстелге жатқызып, «Бастау» басыңыз: z осі бойынша ≈ 9,8 м/с² шығады.','«g-сыз» белгісін қойып, телефонды қолмен алға-артқа жылжытыңыз.','Лифтпен көтерілгенде немесе тоқтағанда үдеудің өзгерісін бақылаңыз.'],
+  build(root,ui){const nog=checkbox(root,'g-сыз (тек қозғалыс үдеуі)');const set=readouts(root,[{id:'x',label:'aₓ',unit:'м/с²'},{id:'y',label:'a_y',unit:'м/с²'},{id:'z',label:'a_z',unit:'м/с²'},{id:'n',label:'|a|',unit:'м/с²',big:1},{id:'m',label:'|a| максимум',unit:'м/с²'}]);
+    const gr=new Graph(root,[{name:'x',color:C.x},{name:'y',color:C.y},{name:'z',color:C.z},{name:'|a|',color:C.n}],{unit:'м/с²'});let max=0;
+    const f=e=>{const a=(nog.checked&&e.acceleration&&e.acceleration.x!=null)?e.acceleration:e.accelerationIncludingGravity;if(!a||a.x==null)return;
+      const n=Math.hypot(a.x,a.y,a.z);max=Math.max(max,n);gr.push(performance.now()/1000,[a.x,a.y,a.z,n]);set('x',a.x);set('y',a.y);set('z',a.z);set('n',n);set('m',max);};
+    return {motion:1,start(){max=0;gr.clear();return Motion.sub(f);},stop(){Motion.unsub(f);},frame(){gr.draw();}};}};
+
+EXP.centr={title:'Центрге тартқыш үдеу',grade:'9 сынып · шеңбер бойымен қозғалыс',icon:'ω²r',
+  theory:'<p>Шеңбер бойымен айналған денеде центрге бағытталған үдеу пайда болады. Гироскоп бұрыштық жылдамдықты, акселерометр үдеуді өлшейді, ал олардың қатынасынан айналу радиусы табылады.</p><p class="formula">a = ω²·r</p>',
+  steps:['Телефонды айналмалы орындыққа немесе табаққа центрден алысырақ жатқызыңыз.','«Бастау» басып, жылдамдықты біртіндеп өзгерте отырып айналдырыңыз.','Нүктелер түзу сызыққа жатады: оның еңісі — радиус r. Сызғышпен өлшенген мәнмен салыстырыңыз.'],
+  build(root){const set=readouts(root,[{id:'w',label:'ω',unit:'рад/с'},{id:'a',label:'a',unit:'м/с²'},{id:'r',label:'r = a/ω² (нүктелер бойынша)',unit:'см',big:1},{id:'n',label:'нүкте саны',unit:'',dig:0}]);
+    const sc=new Scatter(root,{xlab:'ω², рад²/с²',ylab:'a, м/с²',color:'#2F6FB5'});let w=0,a=0,lastT=0;
+    const f=e=>{const r=e.rotationRate;if(!r||r.alpha==null)return;const wn=Math.hypot(r.alpha,r.beta,r.gamma)*DEG;
+      let an;if(e.acceleration&&e.acceleration.x!=null)an=Math.hypot(e.acceleration.x,e.acceleration.y,e.acceleration.z);else{const g=e.accelerationIncludingGravity;an=Math.hypot(g.x,g.y);}
+      w+=(wn-w)*.2;a+=(an-a)*.2;set('w',w);set('a',a);const t=performance.now();
+      if(w>1.5&&t-lastT>150){lastT=t;sc.add(w*w,a);const k=sc.k;set('r',k==null?null:k*100);set('n',sc.pts.length);}};
+    const ctrl=el('div','ctrl');const clr=button(ctrl,'Нүктелерді өшіру');root.appendChild(ctrl);clr.onclick=()=>{sc.clear();set('r',null);set('n',0);};
+    return {motion:1,start(){return Motion.sub(f);},stop(){Motion.unsub(f);},frame(){sc.draw();}};}};
+
+EXP.watch={title:'Акустикалық секундомер',grade:'7–9 сынып · жылдамдық, еркін түсу',icon:'Δt',
+  theory:'<p>Телефон екі қатты дыбыстың (шапалақ, соққы) арасындағы уақытты мыңнан бір секунд дәлдікпен өлшейді. Уақыт пен қашықтықтан жылдамдықты, ал құлау биіктігінен еркін түсу үдеуін есептейміз.</p><p class="formula">v = s / Δt,&nbsp;&nbsp; g = 2h / Δt²</p>',
+  steps:['Қашықтықты (немесе құлау биіктігін) метрмен енгізіңіз.','«Бастау» басып, дыбыс деңгейі шегін (қызыл сызық) бөлмедегі шудан жоғары қойыңыз.','Жылдамдық: дене бастапқы нүктеден шыққанда бір соққы, соңғы нүктеге жеткенде екінші соққы.','Еркін түсу: денені ұстап тұрған қолды қатты шапалақтап босатыңыз, дене еденге түскен дыбыс екінші белгі болады.'],
+  build(root){const S=numInput(root,'Қашықтық / биіктік s','1.00','м');
+    root.appendChild(el('div','ro-l','Сезгіштік шегі'));const th=el('input');th.type='range';th.min=.03;th.max=.9;th.step=.01;th.value=.3;root.appendChild(th);
+    const lv=el('div','level','<div></div><s></s>');root.appendChild(lv);const bar=lv.firstChild,mark=lv.lastChild;
+    const st=el('div','status');root.appendChild(st);
+    const set=readouts(root,[{id:'dt',label:'Δt',unit:'с',big:1,dig:3},{id:'v',label:'v = s/Δt',unit:'м/с'},{id:'g',label:'g = 2s/Δt²',unit:'м/с²'}]);
+    const log=el('div','log','<div>Өлшеулер осында жазылады</div>');root.appendChild(log);let rows=[];
+    let proc,sink,n0=0,t1=null,dead=0,peak=0;
+    const upd=()=>{mark.style.left=(th.value/1*100)+'%';};th.oninput=upd;upd();
+    return {async start(ui){await Mic.open();const ctx=Mic.ctx,sr=ctx.sampleRate;proc=ctx.createScriptProcessor(1024,1,1);sink=ctx.createGain();sink.gain.value=0;
+        Mic.src.connect(proc);proc.connect(sink);sink.connect(ctx.destination);n0=0;t1=null;dead=0;st.textContent='Бірінші дыбысты күтудемін…';
+        proc.onaudioprocess=ev=>{const x=ev.inputBuffer.getChannelData(0),thr=+th.value;
+          for(let i=0;i<x.length;i++){const v=Math.abs(x[i]);if(v>peak)peak=v;const n=n0+i;if(n<dead)continue;
+            if(v>thr){const t=n/sr;dead=n+Math.round(.1*sr);
+              if(t1==null){t1=t;st.textContent='Екінші дыбысты күтудемін…';}
+              else{const dt=t-t1,s=S();t1=null;dead=n+Math.round(.6*sr);st.textContent='Дайын. Келесі өлшеу үшін қайтадан бірінші дыбыс.';
+                set('dt',dt);set('v',s/dt);set('g',2*s/(dt*dt));rows.unshift(`Δt = ${dt.toFixed(3)} с · v = ${(s/dt).toFixed(2)} м/с · g = ${(2*s/dt/dt).toFixed(2)} м/с²`);rows=rows.slice(0,8);log.innerHTML=rows.map(r=>`<div>${r}</div>`).join('');}}}
+          n0+=x.length;};},
+      stop(){if(proc){proc.onaudioprocess=null;proc.disconnect();sink.disconnect();}Mic.close();st.textContent='';},
+      frame(){bar.style.width=Math.min(100,peak*100)+'%';peak*=.85;}};}};
+
+EXP.pend={title:'Математикалық маятник',grade:'9–10 сынып · тербелістер',icon:'T',
+  theory:'<p>Жіпке ілінген телефон тербелгенде гироскоп бұрыштық жылдамдықтың периодты өзгерісін көрсетеді. Периодты өлшеп, жіптің ұзындығын біле отырып, еркін түсу үдеуін есептейміз.</p><p class="formula">T = 2π√(L/g) &nbsp;⇒&nbsp; g = 4π²L / T²</p>',
+  steps:['Телефонды мықты жіпке (немесе қапшыққа салып) іліңіз. L — ілу нүктесінен телефонның ортасына дейінгі қашықтық.','L мәнін енгізіп, «Бастау» басыңыз.','Маятникті шағын бұрышқа (15°-тан аз) ауытқытып, босатыңыз. 5–6 тербелістен кейін нәтиже тұрақталады.','L-ді өзгертіп, T² пен L арасындағы тәуелділікті зерттеңіз.'],
+  build(root){const L=numInput(root,'Жіп ұзындығы L','0.50','м');
+    const set=readouts(root,[{id:'T',label:'Период T',unit:'с',big:1,dig:3},{id:'g',label:'g',unit:'м/с²',big:1},{id:'e',label:'9,81-ден айырмашылық',unit:'%',dig:1},{id:'n',label:'өлшенген период',unit:'',dig:0}]);
+    const gr=new Graph(root,[{name:'ω (гироскоп)',color:'#3C8D4A'}],{unit:'°/с'});const P=[new Period(8),new Period(8),new Period(8)];
+    const f=e=>{const r=e.rotationRate;if(!r||r.alpha==null)return;const t=performance.now()/1000,v=[r.alpha,r.beta,r.gamma];P.forEach((p,i)=>p.push(t,v[i]));
+      let b=0;for(let i=1;i<3;i++)if(P[i].amp>P[b].amp)b=i;gr.push(t,[v[b]]);const T=P[b].T;set('T',T);set('n',P[b].ps.length);
+      if(T){const g=4*Math.PI*Math.PI*L()/(T*T);set('g',g);set('e',(g-9.81)/9.81*100);}};
+    return {motion:1,start(){P.forEach(p=>p.reset());gr.clear();return Motion.sub(f);},stop(){Motion.unsub(f);},frame(){gr.draw();}};}};
+
+EXP.spring={title:'Серіппелі маятник',grade:'9–10 сынып · тербелістер',icon:'k',
+  theory:'<p>Серіппеге ілінген жүк тербелгенде акселерометр үдеудің периодты өзгерісін тіркейді. Период пен массадан серіппенің қатаңдығы табылады.</p><p class="formula">T = 2π√(m/k) &nbsp;⇒&nbsp; k = 4π²m / T²</p>',
+  steps:['Телефонды жүкпен бірге серіппеге (резеңке жгутқа) мықтап бекітіңіз. m — телефон мен жүктің жалпы массасы.','Массаны енгізіп, «Бастау» басыңыз.','Жүкті тік бағытта 2–3 см тартып, босатыңыз.','Массаны өзгертіп, T² ∝ m тәуелділігін тексеріңіз.'],
+  build(root){const M=numInput(root,'Масса m','0.25','кг');
+    const set=readouts(root,[{id:'T',label:'Период T',unit:'с',big:1,dig:3},{id:'k',label:'Қатаңдық k',unit:'Н/м',big:1},{id:'f',label:'Жиілік ν = 1/T',unit:'Гц'}]);
+    const gr=new Graph(root,[{name:'|a|',color:C.n}],{unit:'м/с²'});const P=new Period(.15);
+    const f=e=>{const a=e.accelerationIncludingGravity;if(!a||a.x==null)return;const t=performance.now()/1000,n=Math.hypot(a.x,a.y,a.z);P.push(t,n);gr.push(t,[n]);
+      const T=P.T;set('T',T);if(T){set('k',4*Math.PI*Math.PI*M()/(T*T));set('f',1/T);}};
+    return {motion:1,start(){P.reset();gr.clear();return Motion.sub(f);},stop(){Motion.unsub(f);},frame(){gr.draw();}};}};
+
+EXP.scope={title:'Дыбыс осциллографы',grade:'9 сынып · дыбыс толқындары',icon:'∿',
+  theory:'<p>Микрофон ауа қысымының тербелісін электр сигналына айналдырады. Экранда дыбыс толқынының пішіні көрінеді: амплитудасы — қаттылығы, периоды — биіктігі (тоны).</p><p class="formula">ν = 1 / T</p>',
+  steps:['«Бастау» басып, микрофонға рұқсат беріңіз.','Камертонды соғыңыз, ысқырыңыз немесе «ууу» деп созыңыз. Таза тон синусоида береді.','«Қатыру» арқылы суретті тоқтатып, периодты торкөз арқылы бағалаңыз.'],
+  build(root){const set=readouts(root,[{id:'f',label:'Жиілік (шамамен)',unit:'Гц',big:1,dig:0},{id:'A',label:'Амплитуда',unit:'',dig:3}]);
+    const cv=el('canvas');cv.style.height='220px';root.appendChild(cv);const g=cv.getContext('2d');const ctrl=el('div','ctrl');const fr=button(ctrl,'Қатыру');root.appendChild(ctrl);
+    let an,buf,frozen=false;fr.onclick=()=>{frozen=!frozen;fr.textContent=frozen?'Жалғастыру':'Қатыру';};const obj={size:Graph.prototype.size,paper:Graph.prototype.paper,c:cv,ctx:g};
+    return {async start(){await Mic.open();an=Mic.ctx.createAnalyser();an.fftSize=4096;Mic.src.connect(an);buf=new Float32Array(an.fftSize);},
+      stop(){Mic.close();an=null;},
+      frame(){if(!an||frozen)return;an.getFloatTimeDomainData(buf);obj.size();obj.paper();const w=obj.w,h=obj.h,sr=Mic.ctx.sampleRate;
+        let A=0;for(const v of buf)A=Math.max(A,Math.abs(v));set('A',A);
+        let s=0;for(let i=1;i<buf.length/2;i++)if(buf[i-1]<0&&buf[i]>=0){s=i;break;}
+        const N=Math.round(sr*.01);const sc=Math.max(A,.02);g.strokeStyle='#C8393B';g.lineWidth=2;g.beginPath();
+        for(let i=0;i<N&&s+i<buf.length;i++){const x=i/N*w,y=h/2-buf[s+i]/sc*h*.45;i?g.lineTo(x,y):g.moveTo(x,y);}g.stroke();
+        g.fillStyle='#1E2A44';g.font='11px system-ui';g.fillText('10 мс',w-40,h-4);
+        let c=0,st=0,first=-1,last=-1;const hy=A*.2;for(let i=0;i<buf.length;i++){if(st<=0&&buf[i]>hy){if(st===-1){if(first<0)first=i;else{last=i;c++;}}st=1;}else if(st>=0&&buf[i]<-hy)st=-1;}
+        set('f',(A>.01&&c>0)?c*sr/(last-first):null);}};}};
+
+EXP.spec={title:'Дыбыс жиілігі (спектр)',grade:'9–11 сынып · толқындар, резонанс',icon:'Гц',
+  theory:'<p>Кез келген дыбыс әртүрлі жиіліктегі тербелістердің қосындысы. Фурье талдауы оларды бөліп көрсетеді: ең биік шың — негізгі тон. Дыбыс жылдамдығын біле отырып, толқын ұзындығын табамыз.</p><p class="formula">λ = v / ν,&nbsp;&nbsp; v ≈ 343 м/с (20 °C)</p>',
+  steps:['«Бастау» басып, дыбыс көзін (камертон, бөтелкеге үрлеу, музыкалық аспап) микрофонға жақындатыңыз.','Негізгі жиілік пен толқын ұзындығын жазып алыңыз.','Бөтелкедегі су деңгейін өзгертіп, резонанс жиілігінің қалай өзгеретінін зерттеңіз.'],
+  build(root){const set=readouts(root,[{id:'f',label:'Негізгі жиілік ν',unit:'Гц',big:1,dig:1},{id:'l',label:'Толқын ұзындығы λ',unit:'см',dig:1}]);
+    const cv=el('canvas');cv.style.height='220px';root.appendChild(cv);const g=cv.getContext('2d');const obj={size:Graph.prototype.size,paper:Graph.prototype.paper,c:cv,ctx:g};
+    let fmax=4000;const ctrl=el('div','ctrl');[1000,4000,10000].forEach(v=>{const b=button(ctrl,'0–'+(v/1000)+' кГц');b.onclick=()=>fmax=v;});root.appendChild(ctrl);
+    let an,db;return {async start(){await Mic.open();an=Mic.ctx.createAnalyser();an.fftSize=8192;an.smoothingTimeConstant=.5;Mic.src.connect(an);db=new Float32Array(an.frequencyBinCount);},
+      stop(){Mic.close();an=null;},
+      frame(){if(!an)return;an.getFloatFrequencyData(db);obj.size();obj.paper();const w=obj.w,h=obj.h,bw=Mic.ctx.sampleRate/an.fftSize,K=Math.min(db.length-1,Math.floor(fmax/bw));
+        let pk=2;for(let i=3;i<K;i++)if(db[i]>db[pk])pk=i;g.fillStyle='#7B4FA3';g.beginPath();g.moveTo(0,h);
+        for(let i=0;i<=K;i++){const v=Math.max(0,(db[i]+110)/90);g.lineTo(i/K*w,h-Math.min(1,v)*h);}g.lineTo(w,h);g.fill();
+        g.fillStyle='#1E2A44';g.font='11px system-ui';g.fillText('0',2,h-4);g.fillText(fmax+' Гц',w-54,h-4);
+        if(db[pk]>-75){const a=db[pk-1],b=db[pk],c=db[pk+1],d=.5*(a-c)/(a-2*b+c||1);const f=(pk+d)*bw;set('f',f);set('l',34300/f);
+          g.strokeStyle='#C8393B';g.beginPath();g.moveTo(pk/K*w,0);g.lineTo(pk/K*w,h);g.stroke();}else{set('f',null);set('l',null);}}};}};
+
+EXP.mag={title:'Магнит өрісі (магнитометр)',grade:'8, 10–11 сынып · магнит өрісі, ток',icon:'B',
+  theory:'<p>Магнитометр магнит индукциясын микротесламен өлшейді. Жердің магнит өрісі шамамен 25–65 мкТл. «Нөлге келтіру» Жер өрісін алып тастап, тек магниттің немесе токтың өрісін көрсетеді.</p><p class="formula">Түзу ток өрісі: B = μ₀I / (2πr)</p>',
+  steps:['Магниттерден алыс жерде «Бастау», кейін «Нөлге келтіру» басыңыз.','Тұрақты магнитті телефонға әртүрлі қашықтықтан жақындатып, B(r) тәуелділігін жазыңыз.','Ток өткізетін сымды телефонның астымен өткізіп, токты қосып-ажыратыңыз.','Компас: телефонды айналдырып, B компоненттерінің өзгерісін бақылаңыз.'],
+  build(root){const set=readouts(root,[{id:'x',label:'Bₓ',unit:'мкТл',dig:1},{id:'y',label:'B_y',unit:'мкТл',dig:1},{id:'z',label:'B_z',unit:'мкТл',dig:1},{id:'n',label:'|B|',unit:'мкТл',big:1,dig:1}]);
+    const gr=new Graph(root,[{name:'Bₓ',color:C.x},{name:'B_y',color:C.y},{name:'B_z',color:C.z},{name:'|B|',color:C.n}],{unit:'мкТл'});
+    const ctrl=el('div','ctrl');const z=button(ctrl,'Нөлге келтіру');root.appendChild(ctrl);let base=[0,0,0],cur=null,tm;z.onclick=()=>{if(cur)base=cur.slice();};
+    return {bridge:1,start(ui){gr.clear();tm=setInterval(()=>{const r=Bridge.read();if(!r||!r.mag){ui.err('Магнитометр деректері келмей тұр.'+Bridge.diag());return;}ui.ok();
+        cur=r.mag;const b=cur.map((v,i)=>v-base[i]),n=Math.hypot(...b);set('x',b[0]);set('y',b[1]);set('z',b[2]);set('n',n);gr.push(performance.now()/1000,[...b,n]);},60);},
+      stop(){clearInterval(tm);},frame(){gr.draw();}};}};
+
+EXP.baro={title:'Атмосфералық қысым және биіктік',grade:'7, 10 сынып · қысым, газ заңдары',icon:'p',
+  theory:'<p>Кейбір смартфондарда барометр бар. Биіктікке көтерілген сайын ауа қысымы азаяды: жер бетіне жақын жерде әр 1 гПа шамамен 8,5 м биіктікке сәйкес келеді.</p><p class="formula">Δp = −ρ·g·Δh &nbsp;⇒&nbsp; Δh = −Δp / (ρg),&nbsp; ρ ≈ 1,2 кг/м³</p>',
+  steps:['Бірінші қабатта «Бастау», содан кейін «Бастапқы деңгей» басыңыз.','Баспалдақпен жоғары көтеріліп, әр қабатта Δh мәнін жазыңыз.','Нәтижені қабат биіктігімен салыстырыңыз.'],
+  build(root){const set=readouts(root,[{id:'p',label:'Қысым p',unit:'гПа',big:1,dig:2},{id:'h',label:'Биіктік өзгерісі Δh',unit:'м',big:1,dig:1}]);
+    const gr=new Graph(root,[{name:'p',color:'#7B4FA3'}],{unit:'гПа',win:60});const ctrl=el('div','ctrl');const z=button(ctrl,'Бастапқы деңгей');root.appendChild(ctrl);
+    let p0=null,p=null,tm;z.onclick=()=>{p0=p;};
+    return {bridge:1,start(ui){gr.clear();tm=setInterval(()=>{const r=Bridge.read();if(!r||!(r.hpa>300)){ui.err('Барометр деректері жоқ. Телефонда барометр болмауы мүмкін.'+Bridge.diag());return;}ui.ok();
+        p=p==null?r.hpa:p+(r.hpa-p)*.1;set('p',p);if(p0!=null)set('h',-(p-p0)*100/(1.2*9.81));gr.push(performance.now()/1000,[p]);},100);},
+      stop(){clearInterval(tm);},frame(){gr.draw();}};}};
+
+EXP.light={title:'Жарықталу және қашықтық',grade:'8, 11 сынып · жарық, фотометрия',icon:'E',
+  theory:'<p>Жарық датчигі жарықталуды люкспен өлшейді. Нүктелік жарық көзінен қашықтаған сайын жарықталу қашықтықтың квадратына кері пропорционал кемиді.</p><p class="formula">E = I / r²</p>',
+  steps:['Бөлмені қараңғылап, телефонның экранын (жарық датчигі жоғарғы жақта) шамға қаратыңыз.','Қашықтықты енгізіп, «Нүктені жазу» басыңыз. 5–6 түрлі қашықтықта қайталаңыз.','E мен 1/r² графигі түзу болса, заң орындалады; еңісі — жарық күші I.'],
+  build(root){const set=readouts(root,[{id:'E',label:'Жарықталу E',unit:'лк',big:1,dig:0},{id:'I',label:'Жарық күші I (график бойынша)',unit:'кд',dig:2}]);
+    const R=numInput(root,'Қашықтық r','0.30','м');const ctrl=el('div','ctrl');const add=button(ctrl,'Нүктені жазу'),clr=button(ctrl,'Өшіру');root.appendChild(ctrl);
+    const sc=new Scatter(root,{xlab:'1/r², 1/м²',ylab:'E, лк',color:'#C98A1B'});let E=null,tm;
+    add.onclick=()=>{const r=R();if(E!=null&&r>0){sc.add(1/(r*r),E);set('I',sc.k);}};clr.onclick=()=>{sc.clear();set('I',null);};
+    return {bridge:1,start(ui){tm=setInterval(()=>{const r=Bridge.read();if(!r||!isFinite(r.lux)){ui.err('Жарық датчигінің деректері келмей тұр.'+Bridge.diag());return;}ui.ok();E=r.lux;set('E',E);},100);},
+      stop(){clearInterval(tm);},frame(){sc.draw();}};}};
+
+/* ===================================================================
+   v2: айфонда да істейтін жаңа тәжірибелер (браузер датчиктері)
+   =================================================================== */
+function uerr(m){const e=new Error(m);e.user=1;return e;}
+const IS_IOS=/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+
+/* компас (бағыт), iOS: webkitCompassHeading, Android: deviceorientationabsolute */
+const Orient={subs:new Set(),on:false,last:0,ev:null,
+  handler(e){let h=null;if(e.webkitCompassHeading!=null&&isFinite(e.webkitCompassHeading))h=e.webkitCompassHeading;
+    else if(e.absolute&&e.alpha!=null)h=(360-e.alpha)%360;if(h==null)return;Orient.last=performance.now();Orient.subs.forEach(f=>f(h,e));},
+  async sub(f){if(window.DeviceOrientationEvent&&typeof DeviceOrientationEvent.requestPermission==='function'){let r='granted';try{r=await DeviceOrientationEvent.requestPermission();}catch(e){}
+      if(r!=='granted')throw uerr('Компасқа (бағдар датчигіне) рұқсат берілмеді. Safari-ді толық жауып, бетті қайта ашып, «Рұқсат ету» басыңыз.');}
+    this.subs.add(f);if(!this.on){this.ev=('ondeviceorientationabsolute' in window)?'deviceorientationabsolute':'deviceorientation';window.addEventListener(this.ev,this.handler);this.on=true;}},
+  unsub(f){this.subs.delete(f);}};
+
+/* дыбыс генераторы */
+const Tone={ctx:null,osc:[],
+  play(freqs,vol){this.stop();try{if(navigator.audioSession)navigator.audioSession.type='playback';}catch(e){}
+    const AC=window.AudioContext||window.webkitAudioContext;this.ctx=new AC();this.ctx.resume();const g=this.ctx.createGain();g.gain.value=(vol||.8)/freqs.length;g.connect(this.ctx.destination);
+    this.osc=freqs.map(f=>{const o=this.ctx.createOscillator();o.type='sine';o.frequency.value=f;o.connect(g);o.start();return o;});},
+  stop(){this.osc.forEach(o=>{try{o.stop();}catch(e){}});this.osc=[];if(this.ctx){try{this.ctx.close();}catch(e){}}this.ctx=null;
+    try{if(navigator.audioSession)navigator.audioSession.type='auto';}catch(e){}}};
+
+/* камера */
+const Cam={stream:null,video:null,locked:false,cv:null,cx:null,
+  async open(facing){if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw uerr('Бұл браузерде камера қолжетімсіз.');
+    try{this.stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:facing||'environment',width:{ideal:640},height:{ideal:480}}});}
+    catch(e){throw uerr('Камераға рұқсат берілмеді. Телефон баптауларынан осы бет үшін камера рұқсатын қосыңыз.');}
+    const v=document.createElement('video');v.setAttribute('playsinline','');v.setAttribute('muted','');v.muted=true;v.autoplay=true;v.srcObject=this.stream;this.video=v;
+    try{await v.play();}catch(e){}
+    this.cv=document.createElement('canvas');this.cv.width=64;this.cv.height=48;this.cx=this.cv.getContext('2d',{willReadFrequently:true});return v;},
+  async lock(){this.locked=false;try{const tr=this.stream.getVideoTracks()[0],cap=tr.getCapabilities?tr.getCapabilities():{},adv={};
+      if(cap.exposureMode&&cap.exposureMode.indexOf('manual')>=0)adv.exposureMode='manual';
+      if(cap.whiteBalanceMode&&cap.whiteBalanceMode.indexOf('manual')>=0)adv.whiteBalanceMode='manual';
+      if(Object.keys(adv).length){await tr.applyConstraints({advanced:[adv]});this.locked=!!adv.exposureMode;}}catch(e){}return this.locked;},
+  /* орталық аймақтың орташа R,G,B (0–255) */
+  sample(frac){const v=this.video;if(!v||v.readyState<2)return null;const c=this.cx,W=64,H=48;c.drawImage(v,0,0,W,H);
+    const w=Math.round(W*frac),h=Math.round(H*frac),x0=(W-w)>>1,y0=(H-h)>>1,d=c.getImageData(x0,y0,w,h).data;let r=0,g=0,b=0,n=d.length/4;
+    for(let i=0;i<d.length;i+=4){r+=d[i];g+=d[i+1];b+=d[i+2];}return [r/n,g/n,b/n];},
+  close(){if(this.stream)this.stream.getTracks().forEach(t=>t.stop());this.stream=this.video=null;}};
+
+/* спектрдегі ең биік шың (параболалық интерполяция) */
+function peakOf(an,db,fmin,fmax){an.getFloatFrequencyData(db);const bw=Mic.ctx.sampleRate/an.fftSize;
+  const i0=Math.max(2,Math.floor(fmin/bw)),i1=Math.min(db.length-2,Math.ceil(fmax/bw));let pk=i0;for(let i=i0;i<=i1;i++)if(db[i]>db[pk])pk=i;
+  const a=db[pk-1],b=db[pk],c=db[pk+1],den=a-2*b+c,d=den?.5*(a-c)/den:0;return {f:(pk+d)*bw,db:b,bw:bw};}
+function drawSpectrum(obj,db,bw,fmin,fmax,mark){obj.size();obj.paper();const g=obj.ctx,w=obj.w,h=obj.h,i0=Math.floor(fmin/bw),i1=Math.min(db.length-1,Math.ceil(fmax/bw));
+  g.fillStyle='#7B4FA3';g.beginPath();g.moveTo(0,h);for(let i=i0;i<=i1;i++){const v=Math.max(0,(db[i]+110)/90);g.lineTo((i-i0)/(i1-i0)*w,h-Math.min(1,v)*h);}g.lineTo(w,h);g.fill();
+  g.fillStyle='#1E2A44';g.font='11px system-ui';g.fillText(Math.round(fmin)+' Гц',2,h-4);const t=Math.round(fmax)+' Гц';g.fillText(t,w-g.measureText(t).width-3,h-4);
+  if(mark){const x=(mark/bw-i0)/(i1-i0)*w;g.strokeStyle='#C8393B';g.lineWidth=1.5;g.beginPath();g.moveTo(x,0);g.lineTo(x,h);g.stroke();}}
+function canvasBox(root,hgt){const cv=el('canvas');cv.style.height=(hgt||200)+'px';root.appendChild(cv);return {size:Graph.prototype.size,paper:Graph.prototype.paper,c:cv,ctx:cv.getContext('2d')};}
+function logBox(root,empty){const log=el('div','log','<div>'+(empty||'Өлшеулер осында жазылады')+'</div>');root.appendChild(log);let rows=[];
+  return {add(r){rows.unshift(r);rows=rows.slice(0,10);log.innerHTML=rows.map(x=>`<div>${x}</div>`).join('');},clear(){rows=[];log.innerHTML='<div>'+(empty||'Өлшеулер осында жазылады')+'</div>';}};}
+function note(root,html){root.appendChild(el('p','hint',html));}
+/* гравитация векторынан бұрыштар (iOS пен Android таңбалары әртүрлі, сондықтан модульдер алынады) */
+function tiltFromFlat(a){return Math.atan2(Math.hypot(a.x,a.y),Math.abs(a.z))/DEG;}         /* телефон жазықтықта жатқанда көлбеу бұрышы */
+function elevOfTopEdge(a){return Math.atan2(Math.abs(a.y),Math.hypot(a.x,a.z))/DEG;}        /* телефонның жоғарғы шетінің горизонттан биіктігі */
+function sourceToggle(root,label){const box=checkbox(root,label||'Бұл телефон — дыбыс көзі (дыбыс шығарады)');return box;}
+
+/* ---------- МЕХАНИКА ---------- */
+EXP.incline={title:'Көлбеу жазықтық және үйкеліс',grade:'7–9 сынып · үйкеліс күші',icon:'μ',
+  theory:'<p>Дене көлбеу жазықтықта тыныш жатқанда оны тыныштық үйкеліс күші ұстап тұрады. Жазықтықты баяу көтерсек, белгілі бір α бұрышында дене сырғи бастайды. Осы шектік бұрышта ауырлық күшінің жазықтық бойындағы құраушысы ең үлкен үйкеліс күшіне теңеледі.</p><p class="formula">mg·sin α = μ·mg·cos α &nbsp;⇒&nbsp; μ = tg α</p>',
+  steps:['Телефонды (қабымен немесе қабынсыз) тегіс тақтаның үстіне экранын жоғары қаратып жатқызыңыз.','«Бастау» басыңыз: көлбеу бұрыш α нақты уақытта көрсетіледі.','Тақтаның бір ұшын өте баяу көтеріңіз. Телефон сырғи бастаған сәтте қосымша бұрышты өзі жазып алады (қолмен «Бұрышты жазу» батырмасын да басуға болады).','Тәжірибені 3–5 рет қайталап, орташа μ мәнін табыңыз. Беттерді (қағаз, мата, шыны) ауыстырып салыстырыңыз.'],
+  build(root){const set=readouts(root,[{id:'a',label:'Көлбеу бұрыш α',unit:'°',big:1,dig:1},{id:'s',label:'Сырғу бұрышы',unit:'°',dig:1},{id:'mu',label:'μ = tg α',unit:'',big:1,dig:2},{id:'m',label:'Орташа μ',unit:'',dig:2}]);
+    const gr=new Graph(root,[{name:'α',color:'#2F6FB5'}],{unit:'°',win:20});const ctrl=el('div','ctrl');const rec=button(ctrl,'Бұрышты жазу'),clr=button(ctrl,'Өшіру');root.appendChild(ctrl);
+    const log=logBox(root);let hist=[],mus=[],cool=0,ang=null;
+    const save=al=>{const mu=Math.tan(al*DEG);mus.push(mu);set('s',al);set('mu',mu);set('m',mus.reduce((p,c)=>p+c,0)/mus.length);log.add(`α = ${al.toFixed(1)}° · μ = ${mu.toFixed(2)}`);};
+    rec.onclick=()=>{if(ang!=null)save(ang);};clr.onclick=()=>{mus=[];log.clear();set('s',null);set('mu',null);set('m',null);};
+    const f=e=>{const a=e.accelerationIncludingGravity;if(!a||a.x==null)return;const t=performance.now()/1000,al=tiltFromFlat(a);
+      ang=ang==null?al:ang+(al-ang)*.3;set('a',ang);gr.push(t,[ang]);hist.push([t,ang]);while(hist.length&&hist[0][0]<t-1.5)hist.shift();
+      const m=e.acceleration&&e.acceleration.x!=null?Math.hypot(e.acceleration.x,e.acceleration.y,e.acceleration.z):Math.abs(Math.hypot(a.x,a.y,a.z)-9.81);
+      if(m>1.3&&t>cool&&ang>3){const old=hist.filter(h=>h[0]<t-.25&&h[0]>t-.9).map(h=>h[1]).sort((p,q)=>p-q);if(old.length>3){save(old[old.length>>1]);cool=t+2;}}};
+    return {motion:1,start(){gr.clear();hist=[];return Motion.sub(f);},stop(){Motion.unsub(f);},frame(){gr.draw();}};}};
+
+EXP.lift={title:'Лифттегі салмақ',grade:'9–10 сынып · Ньютон заңдары, салмақ',icon:'P',
+  theory:'<p>Дененің салмағы — оның тірекке әсер ететін күші. Лифт жоғары қарай үдей қозғалғанда салмақ артады (асқын салмақ), төмен қарай үдей қозғалғанда азаяды. Акселерометр осы «сезілетін» үдеуді өлшейді.</p><p class="formula">P = m(g + a) — жоғары үдегенде,&nbsp; P = m(g − a) — төмен үдегенде</p>',
+  steps:['Өз массаңызды (немесе жүктің массасын) енгізіңіз.','Телефонды лифттің еденіне экранын жоғары қаратып жатқызыңыз немесе қолда тік ұстаңыз, «Бастау» басыңыз.','Лифтпен көтеріліп, кейін түсіңіз. Қозғалыстың басында және соңында графиктің қалай өзгергенін бақылаңыз.','Ең үлкен және ең кіші салмақтан лифттің үдеуін табыңыз.'],
+  build(root){const M=numInput(root,'Масса m','50','кг');
+    const set=readouts(root,[{id:'a',label:'|a| (g-мен бірге)',unit:'м/с²',dig:2},{id:'P',label:'Салмақ P = m·|a|',unit:'Н',big:1,dig:0},{id:'k',label:'Таразы көрсетер еді',unit:'кг',big:1,dig:1},{id:'mx',label:'P максимум',unit:'Н',dig:0},{id:'mn',label:'P минимум',unit:'Н',dig:0},{id:'la',label:'Лифт үдеуі (макс.)',unit:'м/с²',dig:2}]);
+    const st=el('div','status');root.appendChild(st);const gr=new Graph(root,[{name:'|a|',color:C.n},{name:'g = 9,81',color:'#AFC8D8'}],{unit:'м/с²',win:30});
+    let s=null,mx=0,mn=1e9,dev=0;
+    const f=e=>{const a=e.accelerationIncludingGravity;if(!a||a.x==null)return;const n=Math.hypot(a.x,a.y,a.z);s=s==null?n:s+(n-s)*.08;const m=M(),P=m*s;
+      set('a',s);set('P',P);set('k',P/9.81);if(P>mx)mx=P;if(P<mn)mn=P;set('mx',mx);set('mn',mn);dev=Math.max(dev,Math.abs(s-9.81));set('la',dev);
+      st.textContent=s>10.1?'Салмақ артты: лифт жоғары қарай үдеп (немесе төмен тежеліп) барады.':s<9.5?'Салмақ азайды: лифт төмен қарай үдеп (немесе жоғары тежеліп) барады.':'Салмақ қалыпты: лифт тыныш тұр немесе бірқалыпты қозғалады.';
+      gr.push(performance.now()/1000,[s,9.81]);};
+    return {motion:1,start(){s=null;mx=0;mn=1e9;dev=0;gr.clear();return Motion.sub(f);},stop(){Motion.unsub(f);st.textContent='';},frame(){gr.draw();}};}};
+
+EXP.gps={title:'Жүру жылдамдығы (GPS)',grade:'7 сынып · механикалық қозғалыс, жылдамдық',icon:'v',
+  theory:'<p>GPS қабылдағышы серіктердің сигналдары арқылы телефонның орнын анықтайды. Орындар тізбегінен жүрілген жол мен уақыт есептеліп, орташа және лездік жылдамдық табылады.</p><p class="formula">v = s / t</p>',
+  steps:['Ашық жерге (мектеп ауласына, стадионға) шығыңыз: ғимарат ішінде GPS нашар жұмыс істейді.','«Бастау» басып, орынды анықтауға рұқсат беріңіз. Дәлдік ±10 м-ден аз болғанша күтіңіз.','Тұрақты қарқынмен 100–200 м жүріңіз, кейін жүгіріңіз. Жол, уақыт және жылдамдықты жазыңыз.','Нәтижені рулеткамен өлшенген қашықтықпен және секундомермен салыстырыңыз.'],
+  build(root){const set=readouts(root,[{id:'s',label:'Жүрілген жол s',unit:'м',big:1,dig:1},{id:'t',label:'Уақыт t',unit:'с',dig:0},{id:'v',label:'Орташа v = s/t',unit:'м/с',big:1,dig:2},{id:'vi',label:'Лездік жылдамдық',unit:'м/с',dig:2},{id:'kmh',label:'Орташа жылдамдық',unit:'км/сағ',dig:1},{id:'acc',label:'GPS дәлдігі',unit:'± м',dig:0}]);
+    const gr=new Graph(root,[{name:'v, м/с',color:'#2F6FB5'}],{unit:'м/с',win:120});let id=null,prev=null,s=0,t0=null,tm;
+    const hav=(a,b)=>{const R=6371000,dl=(b.latitude-a.latitude)*DEG,dn=(b.longitude-a.longitude)*DEG,x=Math.sin(dl/2)**2+Math.cos(a.latitude*DEG)*Math.cos(b.latitude*DEG)*Math.sin(dn/2)**2;return 2*R*Math.asin(Math.sqrt(x));};
+    return {start(ui){if(!navigator.geolocation)throw uerr('Бұл браузерде GPS (геолокация) қолжетімсіз.');s=0;prev=null;t0=null;gr.clear();
+        id=navigator.geolocation.watchPosition(p=>{ui.ok();const c=p.coords;set('acc',c.accuracy);if(c.accuracy>30)return;const t=p.timestamp/1000;
+          if(t0==null)t0=t;if(prev){const d=hav(prev.c,c),dt=t-prev.t;if(d>Math.max(2,c.accuracy*.3)&&dt>0){s+=d;const vi=(c.speed!=null&&c.speed>=0)?c.speed:d/dt;set('vi',vi);gr.push(performance.now()/1000,[vi]);prev={c,t};}}else prev={c,t};
+          set('s',s);},
+          err=>ui.err(err.code===1?'Орынды анықтауға рұқсат берілмеді. Телефон баптауларынан (Құпиялылық → Геоқызметтер) рұқсат беріңіз.':'GPS сигналы жоқ. Ашық жерге шығыңыз.'),{enableHighAccuracy:true,maximumAge:0,timeout:30000});
+        tm=setInterval(()=>{if(t0==null)return;const t=Date.now()/1000-t0;set('t',t);if(t>0){set('v',s/t);set('kmh',s/t*3.6);}},500);},
+      stop(){if(id!=null)navigator.geolocation.clearWatch(id);id=null;clearInterval(tm);},frame(){gr.draw();}};}};
+
+/* ---------- ТЕРБЕЛІСТЕР МЕН ТОЛҚЫНДАР ---------- */
+EXP.doppler={title:'Доплер эффектісі',grade:'9–11 сынып · дыбыс толқындары',icon:'Δν',
+  theory:'<p>Дыбыс көзі бақылаушыға жақындағанда толқындар «сығылады» да, естілетін жиілік артады; алыстағанда жиілік кемиді. Жиіліктің өзгерісінен дыбыс көзінің жылдамдығын табуға болады.</p><p class="formula">ν = ν₀ · V / (V ∓ u) &nbsp;⇒&nbsp; u ≈ V·(ν − ν₀) / ν,&nbsp; V ≈ 343 м/с</p>',
+  steps:['Екі телефон керек. Біріншісінде «Бұл телефон — дыбыс көзі» белгісін қойып, «Бастау» басыңыз (дыбысты толық ашыңыз, айфонда бүйірдегі үнсіз режимді өшіріңіз).','Екіншісі — қабылдағыш: белгіні алып тастап, «Бастау» басыңыз. Телефондар тыныш тұрғанда «ν₀-ді жазу» батырмасын басыңыз.','Дыбыс көзін ұстаған оқушы қабылдағышқа қарай жүгіріп келіп, жанынан өтіп, алыстасын (немесе телефонды жіппен айналдырыңыз).','Жақындағанда Δν > 0, алыстағанда Δν < 0 болатынын графиктен көріп, жылдамдық u-ны есептеңіз.'],
+  build(root){const src=sourceToggle(root);const F=numInput(root,'Дыбыс жиілігі ν₀','4000','Гц');
+    const set=readouts(root,[{id:'f',label:'Қабылданған жиілік ν',unit:'Гц',big:1,dig:1},{id:'f0',label:'Тыныштықтағы ν₀',unit:'Гц',dig:1},{id:'d',label:'Δν = ν − ν₀',unit:'Гц',big:1,dig:1},{id:'u',label:'Жылдамдық u',unit:'м/с',dig:2},{id:'um',label:'|u| максимум',unit:'м/с',dig:2}]);
+    const ctrl=el('div','ctrl');const cal=button(ctrl,'ν₀-ді жазу');root.appendChild(ctrl);const gr=new Graph(root,[{name:'Δν, Гц',color:'#C8393B'}],{unit:'Гц',win:10});
+    let an,db,f=null,f0=null,um=0,mode=0;cal.onclick=()=>{if(f!=null){f0=f;set('f0',f0);um=0;}};
+    return {async start(ui){mode=src.checked;if(mode){Tone.play([F()]);ui.info('Дыбыс шығып жатыр: '+F()+' Гц');return;}
+        await Mic.open();an=Mic.ctx.createAnalyser();an.fftSize=32768;an.smoothingTimeConstant=0;Mic.src.connect(an);db=new Float32Array(an.frequencyBinCount);um=0;gr.clear();},
+      stop(){if(mode)Tone.stop();else{Mic.close();an=null;}},
+      frame(){if(mode||!an)return;const p=peakOf(an,db,F()*.85,F()*1.15);if(p.db<-90){set('f',null);return;}f=f==null?p.f:f+(p.f-f)*.5;set('f',f);
+        const ref=f0!=null?f0:F();const d=f-ref,u=343*d/f;set('d',d);set('u',u);if(f0!=null){um=Math.max(um,Math.abs(u));set('um',um);}gr.push(performance.now()/1000,[d]);gr.draw();}};}};
+
+EXP.beats={title:'Дыбыс соққылары',grade:'9 сынып · тербелістерді қосу',icon:'ν₁ν₂',
+  theory:'<p>Жиіліктері жақын екі дыбыс қосылғанда қорытқы дыбыстың қаттылығы периодты түрде күшейіп, әлсірейді. Бұл — соққылар. Соққы жиілігі екі тербеліс жиіліктерінің айырмасына тең.</p><p class="formula">ν_соққы = |ν₁ − ν₂|</p>',
+  steps:['Бірінші телефонда «Бұл телефон — дыбыс көзі» белгісін қойып, ν₁ мен ν₂ жиіліктерін енгізіп (мысалы, 440 және 443 Гц), «Бастау» басыңыз.','Құлақпен тыңдаңыз: дыбыс «толқындап» естіледі.','Екінші телефонда белгіні алып тастап, «Бастау» басыңыз да, дыбыс көзіне жақындатыңыз. Графикте амплитуданың периодты өзгерісі (огибающая) көрінеді.','Өлшенген соққы жиілігін |ν₁ − ν₂| мәнімен салыстырыңыз. ν₂-ні өзгертіп, қайталаңыз.'],
+  build(root){const src=sourceToggle(root);const F1=numInput(root,'Жиілік ν₁','440','Гц'),F2=numInput(root,'Жиілік ν₂','443','Гц');
+    const set=readouts(root,[{id:'th',label:'Теория |ν₁ − ν₂|',unit:'Гц',dig:2},{id:'T',label:'Соққы периоды T',unit:'с',dig:3},{id:'fb',label:'Өлшенген ν_соққы = 1/T',unit:'Гц',big:1,dig:2}]);
+    const gr=new Graph(root,[{name:'Дыбыс амплитудасы',color:'#3C8D4A'}],{unit:'',win:5});const P=new Period(.002);let an,buf,mode=0;
+    return {async start(ui){mode=src.checked;set('th',Math.abs(F1()-F2()));if(mode){Tone.play([F1(),F2()]);ui.info('Дыбыс шығып жатыр: '+F1()+' Гц + '+F2()+' Гц');return;}
+        await Mic.open();an=Mic.ctx.createAnalyser();an.fftSize=1024;Mic.src.connect(an);buf=new Float32Array(an.fftSize);P.reset();gr.clear();},
+      stop(){if(mode)Tone.stop();else{Mic.close();an=null;}},
+      frame(){if(mode||!an)return;an.getFloatTimeDomainData(buf);let s=0;for(const v of buf)s+=v*v;const A=Math.sqrt(s/buf.length),t=performance.now()/1000;P.push(t,A);gr.push(t,[A]);gr.draw();
+        const T=P.T;set('T',T);set('fb',T?1/T:null);}};}};
+
+EXP.db={title:'Дыбыс деңгейі және қашықтық',grade:'8–9 сынып · дыбыс қаттылығы',icon:'дБ',
+  theory:'<p>Нүктелік дыбыс көзінен алыстаған сайын дыбыс энергиясы үлкейіп бара жатқан сфера бетіне таралады, сондықтан дыбыс қарқындылығы қашықтықтың квадратына кері пропорционал кемиді. Қашықтықты 2 есе арттырсақ, дыбыс деңгейі шамамен 6 дБ-ге төмендейді.</p><p class="formula">I ~ 1 / r²,&nbsp;&nbsp; ΔL = 20·lg(r₂ / r₁) дБ</p>',
+  steps:['Бірінші телефонда «Бұл телефон — дыбыс көзі» белгісін қойып, «Бастау» басыңыз (1000 Гц дыбыс шығады). Оны ашық жерге немесе үлкен бөлменің ортасына қойыңыз.','Екінші телефонда белгіні алып тастап, «Бастау» басыңыз.','Дыбыс көзінен 0,25; 0,5; 1; 2 м қашықтықта тұрып, r-ді енгізіп, «Нүктені жазу» басыңыз.','I және 1/r² графигі түзу болса, кері квадрат заңы орындалады. r екі есе артқанда L-дің қанша дБ-ге азайғанын тексеріңіз.'],
+  build(root){const src=sourceToggle(root);const R=numInput(root,'Қашықтық r','0.50','м');
+    const set=readouts(root,[{id:'L',label:'Дыбыс деңгейі L (салыстырмалы)',unit:'дБ',big:1,dig:1},{id:'I',label:'Қарқындылық I/I₁',unit:'',dig:3}]);
+    const lv=el('div','level','<div></div>');root.appendChild(lv);const bar=lv.firstChild;
+    const ctrl=el('div','ctrl');const add=button(ctrl,'Нүктені жазу'),clr=button(ctrl,'Өшіру');root.appendChild(ctrl);
+    const sc=new Scatter(root,{xlab:'1/r², 1/м²',ylab:'I/I₁',color:'#3C8D4A'});const log=logBox(root);
+    note(root,'Ескерту: телефон микрофоны калибрленбеген, сондықтан дБ мәні салыстырмалы. Заңды тексеру үшін деңгейлердің айырмасы маңызды.');
+    let an,buf,L=null,I1=null,L1=null,r1=null,mode=0;
+    add.onclick=()=>{const r=R();if(L==null||!(r>0))return;const I=Math.pow(10,L/10);if(I1==null){I1=I;L1=L;r1=r;}sc.add(1/(r*r),I/I1);
+      log.add(`r = ${r.toFixed(2)} м · L = ${L.toFixed(1)} дБ · ΔL = ${(L-L1).toFixed(1)} дБ (теория ${(-20*Math.log10(r/r1)).toFixed(1)} дБ)`);};
+    clr.onclick=()=>{sc.clear();log.clear();I1=L1=r1=null;};
+    return {async start(ui){mode=src.checked;if(mode){Tone.play([1000]);ui.info('Дыбыс шығып жатыр: 1000 Гц');return;}
+        await Mic.open();an=Mic.ctx.createAnalyser();an.fftSize=2048;Mic.src.connect(an);buf=new Float32Array(an.fftSize);L=null;},
+      stop(){if(mode)Tone.stop();else{Mic.close();an=null;}},
+      frame(){sc.draw();if(mode||!an)return;an.getFloatTimeDomainData(buf);let s=0;for(const v of buf)s+=v*v;const l=20*Math.log10(Math.sqrt(s/buf.length)+1e-9)+100;
+        L=L==null?l:L+(l-L)*.05;set('L',L);if(I1!=null)set('I',Math.pow(10,L/10)/I1);bar.style.width=Math.max(0,Math.min(100,L))+'%';}};}};
+
+/* ---------- ЭЛЕКТР ЖӘНЕ МАГНЕТИЗМ ---------- */
+EXP.compass={title:'Компас және Эрстед тәжірибесі',grade:'8, 10–11 сынып · токтың магнит өрісі',icon:'N',
+  theory:'<p>Телефонның компасы Жердің магнит өрісінің горизонталь құраушысы бойымен бағытталады. Тогы бар өткізгіштің айналасында магнит өрісі пайда болады (Х. Эрстед, 1820): өткізгішті компастың үстіне солтүстік–оңтүстік бағытта қойып, токты қоссақ, компас бұрылады. Ауытқу бұрышы φ бойынша токтың магнит өрісін бағалауға болады.</p><p class="formula">tg φ = B_ток / B_Жер,&nbsp;&nbsp; B_ток = μ₀I / (2πr)</p>',
+  steps:['Телефонды магниттер мен темір заттардан алыс, үстелге экранын жоғары қаратып жатқызыңыз. «Бастау» басып, компасқа рұқсат беріңіз.','Телефонды бұрап, оның жоғарғы шеті солтүстікке (0°) қарайтындай етіңіз де, «Нөлге келтіру» басыңыз.','Сымды телефонның үстімен солтүстік–оңтүстік бағытта созыңыз. Сымды батарейкаға 2–3 секундқа ғана қосыңыз: компастың φ бұрышқа ауытқығанын графиктен көресіз.','Токтың бағытын өзгертіңіз: ауытқу да керісінше болады. Тұрақты магнитпен де салыстырыңыз.'],
+  build(root){const BH=numInput(root,'Жер өрісінің горизонталь құраушысы','26','мкТл');
+    const set=readouts(root,[{id:'h',label:'Бағыт (азимут)',unit:'°',big:1,dig:0},{id:'p',label:'Ауытқу φ',unit:'°',big:1,dig:1},{id:'b',label:'B_ток = B_Жер·tg φ',unit:'мкТл',dig:1},{id:'pm',label:'|φ| максимум',unit:'°',dig:1}]);
+    const ctrl=el('div','ctrl');const z=button(ctrl,'Нөлге келтіру');root.appendChild(ctrl);const gr=new Graph(root,[{name:'φ, °',color:'#C8393B'}],{unit:'°',win:20});
+    note(root,'Ескерту: айфон компасты бағыттау үшін жасайды, сондықтан ол сигналды тегістейді және кейде калибрлеуді сұрайды (телефонды «8» санымен айналдырыңыз). Ауытқу бірден емес, 1–2 секундта көрінуі мүмкін.');
+    let base=null,cur=null,pm=0;z.onclick=()=>{if(cur!=null){base=cur;pm=0;gr.clear();}};
+    const f=h=>{cur=h;if(base==null)base=h;const p=((h-base+540)%360)-180;pm=Math.max(pm,Math.abs(p));set('h',h);set('p',p);set('pm',pm);
+      set('b',Math.abs(p)<89?BH()*Math.tan(p*DEG):null);gr.push(performance.now()/1000,[p]);};
+    return {orient:1,async start(){base=null;pm=0;gr.clear();await Orient.sub(f);},stop(){Orient.unsub(f);},frame(){gr.draw();}};}};
+
+/* ---------- МОЛЕКУЛАЛЫҚ ФИЗИКА ---------- */
+EXP.sndtemp={title:'Дыбыс жылдамдығы және ауа температурасы',grade:'8, 10 сынып · молекулалардың жылулық қозғалысы',icon:'t°',
+  theory:'<p>Дыбыс газда молекулалардың соқтығысуы арқылы тарайды, сондықтан оның жылдамдығы молекулалардың жылулық қозғалысына, яғни температураға тәуелді. Бір ұшы жабық түтікте ұзындығы төрт есе артық толқын резонанс береді. Резонанс жиілігі мен түтік ұзындығынан дыбыс жылдамдығын, одан ауаның температурасын табамыз.</p><p class="formula">v = 4(L + 0,3d)·ν,&nbsp;&nbsp; v = √(γRT/M) ≈ 331 + 0,6·t &nbsp;⇒&nbsp; t ≈ (v − 331) / 0,6</p>',
+  steps:['Бір ұшы жабық түтік алыңыз: су құбыры, қағаз түтік (бір ұшын алақанмен немесе қақпақпен жабыңыз) немесе биік цилиндр. Ұзындығы L (30–60 см) мен ішкі диаметрі d-ны өлшеп, енгізіңіз.','«Бастау» басып, микрофонды түтіктің ашық ұшына жақындатыңыз.','Түтіктің аузына көлденең үрлеңіз немесе ашық ұшын алақанмен жеңіл соғыңыз. Түтіктің негізгі резонанс жиілігі шың болып көрінеді.','«Нүктені жазу» батырмасымен 3–5 өлшеу жасап, температураны бөлме термометрімен салыстырыңыз.'],
+  build(root){const L=numInput(root,'Түтік ұзындығы L','0.40','м'),D=numInput(root,'Ішкі диаметр d','0.03','м');
+    const set=readouts(root,[{id:'f',label:'Резонанс жиілігі ν',unit:'Гц',big:1,dig:1},{id:'v',label:'Дыбыс жылдамдығы v',unit:'м/с',big:1,dig:0},{id:'t',label:'Ауа температурасы t',unit:'°C',big:1,dig:1},{id:'tm',label:'Орташа t',unit:'°C',dig:1}]);
+    const ctrl=el('div','ctrl');const add=button(ctrl,'Нүктені жазу'),clr=button(ctrl,'Өшіру');root.appendChild(ctrl);
+    const obj=canvasBox(root,180);const log=logBox(root);let an,db,f=null,ts=[];
+    const calc=fr=>{const v=4*(L()+.3*D())*fr;return {v,t:(v-331.3)/.606};};
+    add.onclick=()=>{if(f==null)return;const r=calc(f);ts.push(r.t);set('tm',ts.reduce((a,b)=>a+b,0)/ts.length);log.add(`ν = ${f.toFixed(1)} Гц · v = ${r.v.toFixed(0)} м/с · t = ${r.t.toFixed(1)} °C`);};
+    clr.onclick=()=>{ts=[];log.clear();set('tm',null);};
+    return {async start(){await Mic.open();an=Mic.ctx.createAnalyser();an.fftSize=16384;an.smoothingTimeConstant=.6;Mic.src.connect(an);db=new Float32Array(an.frequencyBinCount);},
+      stop(){Mic.close();an=null;},
+      frame(){if(!an)return;const v0=331*1.0,ex=v0/(4*(L()+.3*D()));const p=peakOf(an,db,Math.max(60,ex*.6),Math.min(4000,ex*1.6));
+        drawSpectrum(obj,db,p.bw,Math.max(40,ex*.4),Math.min(5000,ex*2),p.db>-70?p.f:null);
+        if(p.db>-70){f=p.f;const r=calc(f);set('f',f);set('v',r.v);set('t',r.t);}}};}};
+
+/* ---------- ОПТИКА ---------- */
+EXP.camlight={title:'Камера арқылы жарықталу',grade:'8, 11 сынып · жарық, фотометрия',icon:'E',
+  theory:'<p>Камераның матрицасы түскен жарыққа пропорционал сигнал береді. Нүктелік жарық көзінен алыстаған сайын жарықталу қашықтықтың квадратына кері пропорционал кемиді, сондықтан E·r² көбейтіндісі тұрақты болуы керек.</p><p class="formula">E = I / r² &nbsp;⇒&nbsp; E·r² = I = const</p>',
+  steps:['Бөлмені қараңғылаңыз, бір ғана шамды (немесе телефон фонарын) жарық көзі ретінде қалдырыңыз.','Телефонның артқы камерасын 2–3 қабат ақ қағазбен жауып, камераны шамға қаратыңыз. «Бастау» басыңыз.','Қашықтықты енгізіп, «Нүктені жазу» басыңыз. 0,3–1,5 м аралығында 5–6 түрлі қашықтықта қайталаңыз.','E мен 1/r² графигі координат басынан өтетін түзу болса, заң орындалады. Кестедегі E·r² мәндері жуық тең болуы керек.'],
+  build(root){const set=readouts(root,[{id:'E',label:'Жарықталу E (салыстырмалы)',unit:'',big:1,dig:1},{id:'I',label:'I (график еңісі)',unit:'',dig:2}]);
+    const st=el('div','status');root.appendChild(st);const R=numInput(root,'Қашықтық r','0.50','м');
+    const ctrl=el('div','ctrl');const add=button(ctrl,'Нүктені жазу'),clr=button(ctrl,'Өшіру');root.appendChild(ctrl);
+    const sc=new Scatter(root,{xlab:'1/r², 1/м²',ylab:'E (сал.)',color:'#C98A1B'});const log=logBox(root);let E=null,raw=0;
+    add.onclick=()=>{const r=R();if(E==null||!(r>0))return;sc.add(1/(r*r),E);set('I',sc.k);log.add(`r = ${r.toFixed(2)} м · E = ${E.toFixed(1)} · E·r² = ${(E*r*r).toFixed(2)}`);};
+    clr.onclick=()=>{sc.clear();log.clear();set('I',null);};
+    return {async start(){await Cam.open('environment');const lk=await Cam.lock();E=null;
+        st.className='status'+(lk?'':' err');st.textContent=lk?'Камераның экспозициясы бекітілді: өлшеуге болады.':'Бұл телефонда камера жарықтылықты өзі автоматты реттейді (экспозицияны бекіту мүмкін емес), сондықтан нәтиже тек шамамен шығады. Мұндайда кері квадрат заңын «Дыбыс деңгейі және қашықтық» тәжірибесімен тексеруге болады.';},
+      stop(){Cam.close();},
+      frame(){sc.draw();const c=Cam.sample(.6);if(!c)return;const y=.2126*c[0]+.7152*c[1]+.0722*c[2];raw=y;const lin=Math.pow(y/255,2.2)*1000;E=E==null?lin:E+(lin-E)*.2;set('E',E);
+        if(y>245)st.textContent='Тым жарық (сигнал толып кетті): қағаз қабатын көбейтіңіз немесе алысырақ тұрыңыз.';}};}};
+
+const HUE=[[0,650],[30,600],[60,580],[120,530],[180,490],[240,460],[270,420]];
+function hueToNm(h){if(h>270)return null;for(let i=1;i<HUE.length;i++)if(h<=HUE[i][0]){const [h0,l0]=HUE[i-1],[h1,l1]=HUE[i];return l0+(l1-l0)*(h-h0)/(h1-h0);}return null;}
+function colorName(h,s,v){if(v<.12)return 'қара';if(s<.15)return v>.8?'ақ':'сұр';if(h<15||h>=340)return 'қызыл';if(h<45)return 'қызғылт сары';if(h<70)return 'сары';if(h<160)return 'жасыл';if(h<200)return 'көгілдір';if(h<255)return 'көк';if(h<290)return 'күлгін';return 'қызғылт';}
+EXP.color={title:'Жарық және түс',grade:'8, 11 сынып · жарықтың дисперсиясы, түстер',icon:'RGB',
+  theory:'<p>Камера матрицасының әр пикселі қызыл (R), жасыл (G) және көк (B) сүзгілер арқылы жарықты өлшейді. Көзіміз де осындай үш түрлі рецептор арқылы түсті ажыратады. Үш негізгі түсті әртүрлі мөлшерде қосып, кез келген түсті алуға болады (аддитивті түс қосу).</p><p class="formula">Қызыл + жасыл = сары,&nbsp; жасыл + көк = көгілдір,&nbsp; R + G + B = ақ</p>',
+  steps:['«Бастау» басып, камераға рұқсат беріңіз. Экрандағы шаршыны зерттелетін затқа немесе жарық көзіне бағыттаңыз.','Түсті қағаздарды, түрлі түсті сүзгілерді (мөлдір пленкаларды), басқа телефонның экранындағы түстерді өлшеңіз.','R, G, B құраушыларын салыстырып, сары, көгілдір, ақ түстер қандай құраушылардан тұратынын анықтаңыз.','Дисктен немесе призмадан алынған спектр түстерін өлшеп, шамамен толқын ұзындығын жазыңыз.'],
+  build(root){const pv=canvasBox(root,220);const sw=el('div','swatch');root.appendChild(sw);
+    const set=readouts(root,[{id:'r',label:'R (қызыл)',unit:'%',dig:0},{id:'g',label:'G (жасыл)',unit:'%',dig:0},{id:'b',label:'B (көк)',unit:'%',dig:0},{id:'h',label:'Түс реңі (hue)',unit:'°',dig:0},{id:'l',label:'Толқын ұзындығы (шамамен)',unit:'нм',big:1,dig:0}]);
+    const nm=el('div','status');root.appendChild(nm);const ctrl=el('div','ctrl');const add=button(ctrl,'Түсті жазу');root.appendChild(ctrl);const log=logBox(root);let last=null;
+    add.onclick=()=>{if(last)log.add(`${last.name} · R ${last.r}% · G ${last.g}% · B ${last.b}%`+(last.l?` · λ ≈ ${last.l} нм`:''));};
+    return {async start(){await Cam.open('environment');},stop(){Cam.close();},
+      frame(){const v=Cam.video;if(!v||v.readyState<2)return;pv.size();const g=pv.ctx,w=pv.w,h=pv.h,vw=v.videoWidth,vh=v.videoHeight,s=Math.max(w/vw,h/vh);
+        g.drawImage(v,(w-vw*s)/2,(h-vh*s)/2,vw*s,vh*s);const bx=Math.min(w,h)*.25;g.strokeStyle='#fff';g.lineWidth=3;g.strokeRect(w/2-bx/2,h/2-bx/2,bx,bx);g.strokeStyle='#1E2A44';g.lineWidth=1;g.strokeRect(w/2-bx/2,h/2-bx/2,bx,bx);
+        const c=Cam.sample(.25);if(!c)return;const [r,gg,b]=c,mx=Math.max(r,gg,b),mn=Math.min(r,gg,b),sum=r+gg+b||1;let hu=0;const d=mx-mn;
+        if(d>0){if(mx===r)hu=((gg-b)/d)%6;else if(mx===gg)hu=(b-r)/d+2;else hu=(r-gg)/d+4;hu*=60;if(hu<0)hu+=360;}const sat=mx?d/mx:0,val=mx/255;
+        sw.style.background=`rgb(${r|0},${gg|0},${b|0})`;set('r',r/sum*100);set('g',gg/sum*100);set('b',b/sum*100);set('h',hu);
+        const l=sat>.3&&val>.15?hueToNm(hu):null;set('l',l);const name=colorName(hu,sat,val);nm.textContent='Түс: '+name+(l?'':(sat>.3&&hu>270?' (спектрде жоқ, қызыл мен көктің қоспасы)':''));
+        last={name,r:Math.round(r/sum*100),g:Math.round(gg/sum*100),b:Math.round(b/sum*100),l:l?Math.round(l):null};}};}};
+
+/* ---------- АСТРОНОМИЯ ЭЛЕМЕНТТЕРІ ---------- */
+EXP.polaris={title:'Поляр жұлдызы және географиялық ендік',grade:'11 сынып · астрономия элементтері',icon:'φ',
+  theory:'<p>Поляр жұлдызы әлем полюсіне өте жақын орналасқан, сондықтан ол аспанда дерлік қозғалмайды. Оның горизонттан биіктігі h бақылаушы тұрған жердің географиялық ендігі φ-ге тең. Қызылорданың ендігі шамамен 44,8°.</p><p class="formula">h(Поляр жұлдызы) ≈ φ</p>',
+  steps:['Ашық күні кешке Үлкен Аюдың «шөмішінің» шеткі екі жұлдызы арқылы Поляр жұлдызын табыңыз.','«Бастау» басыңыз. Телефонды тік ұстап, оның жоғарғы шетін (ұзын қырын) Поляр жұлдызына бағыттаңыз: қыр бойымен жұлдызға қараңыз.','«Бұрышты бекіту» басыңыз да, 3 секунд қозғалтпай ұстаңыз: қосымша орташа биіктікті жазып алады.','3–5 рет өлшеп, орташа мәнді берілген ендікпен салыстырыңыз. Ендікті «GPS бойынша» батырмасымен де анықтауға болады.'],
+  build(root){const PHI=numInput(root,'Жердің ендігі φ','44.85','°');
+    const set=readouts(root,[{id:'h',label:'Қазіргі биіктік h',unit:'°',big:1,dig:1},{id:'hf',label:'Бекітілген h',unit:'°',big:1,dig:1},{id:'d',label:'h − φ',unit:'°',dig:1},{id:'m',label:'Орташа h',unit:'°',dig:1}]);
+    const st=el('div','status');root.appendChild(st);const ctrl=el('div','ctrl');const fix=button(ctrl,'Бұрышты бекіту'),gps=button(ctrl,'GPS бойынша ендік');root.appendChild(ctrl);const log=logBox(root);
+    let h=null,col=null,hs=[];
+    fix.onclick=()=>{if(h==null)return;let k=2;st.textContent='Қозғалтпаңыз… '+k;const iv=setInterval(()=>{k--;if(k>0){st.textContent='Қозғалтпаңыз… '+k;return;}clearInterval(iv);col=[];st.textContent='Өлшеп жатырмын…';
+      setTimeout(()=>{const a=col;col=null;if(!a||!a.length)return;a.sort((p,q)=>p-q);const v=a[a.length>>1];hs.push(v);set('hf',v);set('d',v-PHI());set('m',hs.reduce((p,q)=>p+q,0)/hs.length);
+        st.textContent='Жазылды.';log.add(`h = ${v.toFixed(1)}° · φ = ${PHI().toFixed(2)}° · айырмасы ${(v-PHI()).toFixed(1)}°`);},1000);},1000);};
+    gps.onclick=()=>{if(!navigator.geolocation){st.textContent='GPS қолжетімсіз.';return;}st.textContent='Ендікті анықтап жатырмын…';
+      navigator.geolocation.getCurrentPosition(p=>{const inp=root.querySelector('.inp input');inp.value=p.coords.latitude.toFixed(2);st.textContent='GPS ендігі: '+p.coords.latitude.toFixed(2)+'°';},()=>{st.textContent='Орынды анықтау мүмкін болмады.';},{enableHighAccuracy:true,timeout:20000});};
+    const f=e=>{const a=e.accelerationIncludingGravity;if(!a||a.x==null)return;const v=elevOfTopEdge(a);h=h==null?v:h+(v-h)*.15;set('h',h);if(col)col.push(v);};
+    return {motion:1,start(){h=null;return Motion.sub(f);},stop(){Motion.unsub(f);},frame(){}};}};
+
+/* Android қосымшасында (App Inventor) магнитометр, жарық датчигі мен барометр қосылады; браузерде (айфон) олар жоқ */
+const IN_APP=Bridge.ok();
+const SECTIONS=[
+  {name:'Механика',c:'#2F6FB5',items:['acc','centr','watch','incline','lift','gps']},
+  {name:'Тербелістер мен толқындар',c:'#3C8D4A',items:['pend','spring','scope','spec','beats','doppler','db']},
+  {name:'Электр және магнетизм',c:'#C8393B',items:IN_APP?['mag','compass']:['compass']},
+  {name:'Молекулалық физика',c:'#7B4FA3',items:IN_APP?['baro','sndtemp']:['sndtemp']},
+  {name:'Оптика',c:'#C98A1B',items:IN_APP?['light','camlight','color']:['camlight','color']},
+  {name:'Астрономия элементтері',c:'#1F7F86',items:['polaris']}];
+const WEB_NOTE=IN_APP?'':'«Магнит өрісі», «Атмосфералық қысым» және «Жарықталу (жарық датчигі)» тәжірибелері тек Android қосымшасында бар, өйткені браузер бұл датчиктерді ашпайды.';
+
+/* ---------- navigation ---------- */
+let current=null,raf=0;
+function home(){stopCurrent();document.getElementById('back').style.display='none';
+  document.getElementById('htitle').textContent='Физика зертханасы';document.getElementById('hsub').textContent='Qyzyqty Fizika · смартфон датчиктерімен өлшеу';
+  $app.innerHTML='';
+  const standalone=window.navigator.standalone||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches);
+  if(IS_IOS&&!IN_APP&&!standalone)$app.appendChild(el('div','install','<b>Айфонға орнату</b>Safari-де төмендегі «Бөлісу» батырмасын (⬆) басып, «На экран «Домой»» / «Add to Home Screen» таңдаңыз. Сонда FizLabKZ белгішемен ашылады және интернетсіз жұмыс істейді.'));
+  SECTIONS.forEach(s=>{const sec=el('section','sec');sec.style.setProperty('--c',s.c);sec.appendChild(el('h2','',s.name));if(s.note)sec.appendChild(el('p','note',s.note));
+    s.items.forEach(id=>{const x=EXP[id];const b=el('button','item',`<div class="ic">${x.icon}</div><div><b>${x.title}</b><span>${x.grade}</span></div>`);b.onclick=()=>open(id,s.c);sec.appendChild(b);});$app.appendChild(sec);});
+  if(WEB_NOTE)$app.appendChild(el('p','hint',WEB_NOTE));
+  window.scrollTo(0,0);}
+function open(id,color){const x=EXP[id];document.getElementById('back').style.display='block';document.getElementById('htitle').textContent=x.title;document.getElementById('hsub').textContent=x.grade;
+  $app.innerHTML='';const root=el('div','exp');root.style.setProperty('--sec',color);$app.appendChild(root);
+  root.appendChild(el('details','',`<summary>Теория</summary>${x.theory}`));
+  const d=el('details','',`<summary>Тәжірибені қалай жүргізу керек</summary><ol>${x.steps.map(s=>`<li>${s}</li>`).join('')}</ol>`);d.open=true;root.appendChild(d);
+  const ctrl=el('div','ctrl');const go=button(ctrl,'Бастау','main');root.appendChild(ctrl);const st=el('div','status');root.appendChild(st);
+  const ui={err(m){st.textContent=m;st.className='status err';},info(m){st.textContent=m;st.className='status info';},ok(){if(st.classList.contains('err')){st.textContent='';st.className='status';}}};
+  const inst=x.build(root,ui);const g0=root.querySelector('.ro-grid');if(g0){root.insertBefore(ctrl,g0);root.insertBefore(st,g0);}let on=false,chk;
+  go.onclick=async()=>{if(!on){try{st.textContent='';st.className='status';await inst.start(ui);on=true;go.textContent='Тоқтату';go.classList.add('on');
+        if(inst.motion){const t0=performance.now();chk=setTimeout(()=>{if(Motion.last<t0)ui.err('Қозғалыс датчигінен дерек келмеді. Телефонда бұл датчик болмауы мүмкін.');},2000);}
+        if(inst.orient){const t0=performance.now();chk=setTimeout(()=>{if(Orient.last<t0)ui.err('Компастан дерек келмеді. Бұл құрылғыда компас болмауы мүмкін.');},2500);}}
+      catch(e){ui.err(e&&e.user?e.message:'Датчикке рұқсат берілмеді. Телефон баптауларынан осы қосымшаға рұқсат беріңіз.');}}
+    else{clearTimeout(chk);inst.stop();on=false;go.textContent='Бастау';go.classList.remove('on');}};
+  current={inst,isOn:()=>on};window.scrollTo(0,0);}
+function stopCurrent(){if(current&&current.isOn())current.inst.stop();current=null;}
+function loop(){if(current&&current.inst.frame)current.inst.frame();raf=requestAnimationFrame(loop);}
+document.getElementById('back').onclick=home;
+home();loop();
+if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)&&!IN_APP){window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{});});}
+</script>
+</body>
+</html>
