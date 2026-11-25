@@ -28,6 +28,13 @@ header{position:sticky;top:0;z-index:5;background:var(--paper);border-bottom:2px
 header h1{font-family:"Noto Serif",Georgia,serif;font-size:1.15rem;font-weight:700;letter-spacing:.01em}
 header p{font-size:.8rem;color:var(--muted)}
 #back{display:none;border:2px solid var(--ink);background:var(--sheet);width:40px;height:40px;border-radius:50%;font-size:1.2rem;line-height:1}
+#info{border:2px solid var(--ink);background:var(--sheet);width:36px;height:36px;border-radius:50%;font-family:"Noto Serif",Georgia,serif;font-weight:700;font-style:italic;font-size:1.05rem;line-height:1;flex:0 0 36px}
+.about h2{font-family:"Noto Serif",Georgia,serif;font-size:1.45rem;margin-bottom:4px}
+.about .lead{font-size:.95rem;margin-bottom:12px}
+.about ul{padding-left:20px}
+.author{background:var(--sheet);border:1px solid var(--line);border-left:6px solid var(--blue);border-radius:10px;padding:12px 14px;margin:14px 0}
+.author span{display:block;font-size:.8rem;color:var(--muted)}
+.author b{font-size:1.1rem}
 main{max-width:640px;margin:0 auto;padding:16px}
 
 /* home */
@@ -87,7 +94,8 @@ input[type=range]{width:100%;accent-color:var(--sec);margin-bottom:10px}
 <body>
 <header>
   <button id="back" aria-label="Артқа">‹</button>
-  <div><h1 id="htitle">Физика зертханасы</h1><p id="hsub">Qyzyqty Fizika · смартфон датчиктерімен өлшеу</p></div>
+  <div style="flex:1"><h1 id="htitle">Физика зертханасы</h1><p id="hsub">FizLabKZ · смартфон датчиктерімен өлшеу</p></div>
+  <button id="info" aria-label="Бағдарлама туралы">i</button>
 </header>
 <main id="app"></main>
 
@@ -562,13 +570,14 @@ const WEB_NOTE=IN_APP?'':'«Магнит өрісі», «Атмосфералы�
 /* ---------- navigation ---------- */
 let current=null,raf=0;
 function home(){stopCurrent();document.getElementById('back').style.display='none';
-  document.getElementById('htitle').textContent='Физика зертханасы';document.getElementById('hsub').textContent='Qyzyqty Fizika · смартфон датчиктерімен өлшеу';
+  document.getElementById('htitle').textContent='Физика зертханасы';document.getElementById('hsub').textContent='FizLabKZ · смартфон датчиктерімен өлшеу';
   $app.innerHTML='';
   const standalone=window.navigator.standalone||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches);
   if(IS_IOS&&!IN_APP&&!standalone)$app.appendChild(el('div','install','<b>Айфонға орнату</b>Safari-де төмендегі «Бөлісу» батырмасын (⬆) басып, «На экран «Домой»» / «Add to Home Screen» таңдаңыз. Сонда FizLabKZ белгішемен ашылады және интернетсіз жұмыс істейді.'));
   SECTIONS.forEach(s=>{const sec=el('section','sec');sec.style.setProperty('--c',s.c);sec.appendChild(el('h2','',s.name));if(s.note)sec.appendChild(el('p','note',s.note));
     s.items.forEach(id=>{const x=EXP[id];const b=el('button','item',`<div class="ic">${x.icon}</div><div><b>${x.title}</b><span>${x.grade}</span></div>`);b.onclick=()=>open(id,s.c);sec.appendChild(b);});$app.appendChild(sec);});
   if(WEB_NOTE)$app.appendChild(el('p','hint',WEB_NOTE));
+  {const ab=el('button','item','<div class="ic" style="background:#1E2A44">i</div><div><b>Бағдарлама туралы</b><span>Мақсаты, мазмұны, қолдану тәртібі, авторы</span></div>');ab.onclick=about;$app.appendChild(ab);}
   window.scrollTo(0,0);}
 function open(id,color){const x=EXP[id];document.getElementById('back').style.display='block';document.getElementById('htitle').textContent=x.title;document.getElementById('hsub').textContent=x.grade;
   $app.innerHTML='';const root=el('div','exp');root.style.setProperty('--sec',color);$app.appendChild(root);
@@ -586,6 +595,35 @@ function open(id,color){const x=EXP[id];document.getElementById('back').style.di
 function stopCurrent(){if(current&&current.isOn())current.inst.stop();current=null;}
 function loop(){if(current&&current.inst.frame)current.inst.frame();raf=requestAnimationFrame(loop);}
 document.getElementById('back').onclick=home;
+/* ---------- «Бағдарлама туралы» ---------- */
+function about(){stopCurrent();document.getElementById('back').style.display='block';
+  document.getElementById('htitle').textContent='Бағдарлама туралы';document.getElementById('hsub').textContent='FizLabKZ · анықтама';
+  const n=SECTIONS.reduce((a,s)=>a+s.items.length,0);
+  const list=SECTIONS.map(s=>`<li><b>${s.name}</b> (${s.items.length}): ${s.items.map(id=>EXP[id].title).join('; ')}</li>`).join('');
+  $app.innerHTML=`<div class="about">
+  <h2>FizLabKZ</h2>
+  <p class="lead">FizLabKZ — смартфонның кіріктірілген датчиктері арқылы мектеп физикасы бойынша нақты өлшеу жүргізуге арналған, толығымен қазақ тіліндегі зертхана. Бұл виртуалды зертхана емес: барлық графиктер мен сандар телефонның өз датчиктерінен нақты уақытта алынады.</p>
+  <div class="author"><span>Авторы</span><b>Рүстем Аққұндыз Батырханқызы</b></div>
+  <details open><summary>Мақсаты</summary>
+    <p>Физикалық құбылыстарды тек формула арқылы емес, өлшеу арқылы көрсету және оқушылардың зерттеушілік дағдыларын дамыту. Зертханалық жабдық жетіспейтін мектептерде әр оқушының қалтасындағы смартфон арзан әрі қолжетімді өлшеу құралына айналады.</p>
+    <p>Тәжірибелер жалпы білім беретін мектептің 7–11 сыныптарындағы физика бағдарламасының тақырыптарына сәйкестендірілген.</p></details>
+  <details open><summary>Мазмұны: ${SECTIONS.length} бөлім, ${n} тәжірибе</summary><ul>${list}</ul>
+    <p>Әр тәжірибеде қысқаша теория мен формула, жүргізу тәртібі, нақты уақыттағы график және өлшенген шамалардан есептелген нәтиже (g, k, μ, v, λ, t және т.б.) беріледі.</p></details>
+  <details><summary>Қолданылатын датчиктер</summary>
+    <ul><li>Акселерометр — үдеу, салмақ, көлбеу бұрыш</li><li>Гироскоп — бұрыштық жылдамдық, тербелістер</li><li>Микрофон — дыбыс, жиілік, уақыт аралықтары</li><li>Компас — магнит өрісінің бағыты</li><li>Камера — жарықталу мен түс</li><li>GPS — орын, жол және жылдамдық</li>
+    <li>Android қосымшасында қосымша: магнитометр, жарық датчигі, барометр</li></ul></details>
+  <details><summary>Қалай қолдану керек</summary>
+    <ol><li>Бөлім мен тәжірибені таңдаңыз, «Тәжірибені қалай жүргізу керек» бөлімін оқыңыз.</li><li>«Бастау» батырмасын басып, телефон сұраған рұқсатты (қозғалыс, микрофон, камера, орын) беріңіз.</li><li>Өлшеу жүргізіп, нәтижені жұмыс парағына жазыңыз. Сабақта оқушылар жұпта жұмыс істейді: біреуі өлшейді, екіншісі жазады.</li><li>Кейбір тәжірибелерге (Доплер, соққылар, дыбыс деңгейі) екі телефон керек: біреуі дыбыс шығарады, екіншісі тыңдайды.</li></ol></details>
+  <details><summary>Телефонға орнату</summary>
+    <p><b>Айфон:</b> Safari-де fizlabkz.github.io сайтын ашып, «Бөлісу» (⬆) → «На экран «Домой»» таңдаңыз.</p>
+    <p><b>Андроид:</b> Chrome-да ⋮ мәзірі → «Добавить на главный экран» немесе «Установить приложение».</p>
+    <p>Бір рет ашылған соң бағдарлама интернетсіз жұмыс істейді, сондықтан желісі нашар ауылдық мектептерде де қолдануға болады.</p></details>
+  <details><summary>Шектеулер</summary>
+    <ul><li>Датчиктер жиынтығы телефон моделіне тәуелді: кейбір телефондарда барометр немесе гироскоп болмауы мүмкін.</li><li>Айфонның браузері магнитометр, жарық датчигі мен барометрді ашпайды, сондықтан бұл үш тәжірибе тек Android қосымшасында бар.</li><li>Телефон микрофоны мен камерасы калибрленбеген, сондықтан дыбыс деңгейі мен жарықталу салыстырмалы бірлікпен беріледі.</li></ul></details>
+  <p class="hint">Нұсқа 2.1 · 2026</p></div>`;
+  window.scrollTo(0,0);}
+document.getElementById('info').onclick=about;
+
 home();loop();
 if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)&&!IN_APP){window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{});});}
 </script>
