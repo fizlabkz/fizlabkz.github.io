@@ -57,7 +57,7 @@ function viewHome() {
 function gradeTile(g) {
   const ms = modelsFor(g), tc = topicCount(g);
   return `<a class="gtile" href="#/g/${g}"><span class="gnum">${g}</span><span class="glabel">сынып</span>
-    <span class="small muted">${tc ? tc + " тақырып · " : g === 9 ? "8-сыныпты қайталау · " : ""}${ms.length} модель · ${testFor(g).length} сұрақ</span>
+    <span class="small muted">${tc ? tc + " тақырып · " : ""}${ms.length} модель · ${testFor(g).length} сұрақ</span>
     <span class="gmodels">${ms.map(([, m]) => esc(m.title)).join(", ")}</span></a>`;
 }
 function modelCard(k, m, g) {
