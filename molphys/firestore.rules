@@ -1,0 +1,38 @@
+rules_version = '2';
+// Молекулалық физика зертханасы: Firestore қауіпсіздік ережелері
+// Оқушы – анонимді кіру, мұғалім – пошта мен құпиясөз.
+service cloud.firestore {
+  match /databases/{db}/documents {
+    function signedIn() { return request.auth != null; }
+    function isTeacher() { return signedIn() && request.auth.token.firebase.sign_in_provider != 'anonymous'; }
+    function classTeacher(code) { return get(/databases/$(db)/documents/classes/$(code)).data.teacherUid; }
+    function validStudentDoc() {
+      return signedIn()
+        && request.resource.data.uid == request.auth.uid
+        && exists(/databases/$(db)/documents/classes/$(request.resource.data.classCode))
+        && request.resource.data.teacherUid == classTeacher(request.resource.data.classCode);
+    }
+    function canRead() {
+      return signedIn() && (resource.data.uid == request.auth.uid || resource.data.teacherUid == request.auth.uid);
+    }
+
+    match /classes/{code} {
+      allow get: if signedIn();
+      allow list: if isTeacher() && resource.data.teacherUid == request.auth.uid;
+      allow create: if isTeacher() && request.resource.data.teacherUid == request.auth.uid;
+      allow update, delete: if isTeacher() && resource.data.teacherUid == request.auth.uid;
+    }
+    match /results/{id} {
+      allow create: if validStudentDoc() && request.resource.data.type in ['pre', 'post'];
+      allow read: if canRead();
+    }
+    match /worksheets/{id} {
+      allow create: if validStudentDoc();
+      allow read: if canRead();
+    }
+    match /aiLogs/{id} {
+      allow create: if validStudentDoc();
+      allow read: if canRead();
+    }
+  }
+}
