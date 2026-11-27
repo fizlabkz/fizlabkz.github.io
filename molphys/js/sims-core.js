@@ -377,3 +377,5 @@ export function mountDiffusion(){
   return {frame(){ if(!paused && t<tmaxFrames()) step(); draw(); }};
   function tmaxFrames(){ return 40*60; }
 }
+
+export { prep, axes, COL, fmt, gauss, $, R };

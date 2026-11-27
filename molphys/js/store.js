@@ -49,7 +49,7 @@ export async function joinClass(code, no) {
   const c = await getClass(code);
   if (!c) throw new Error("Мұндай сынып коды табылмады. Кодты мұғалімнен қайта сұраңыз.");
   const uid = await studentUid();
-  const s = { classCode: c.code, className: c.name, group: c.group, teacherUid: c.teacherUid, studentNo: String(no), uid };
+  const s = { classCode: c.code, className: c.name, grade: String(c.grade || "8"), group: c.group, teacherUid: c.teacherUid, studentNo: String(no), uid };
   setSession(s);
   return s;
 }

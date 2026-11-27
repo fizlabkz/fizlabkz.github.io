@@ -1,5 +1,5 @@
 /* Молекулалық физика зертханасы: бір беттік қолданба (hash маршруттары) */
-import { MODELS, TEST, MISCONCEPTIONS, TIERS, tierOf } from "./content.js";
+import { MODELS, MISCONCEPTIONS, TIERS, tierOf, testFor, modelsFor, CURRICULUM, TESTS, BANK } from "./content.js";
 import * as S from "./store.js";
 import * as ST from "./stats.js";
 import { Tutor } from "./ai.js";
@@ -22,6 +22,7 @@ async function route() {
   try {
     switch (parts[0]) {
       case "models": return viewModels();
+      case "grades": return viewGrades(parts[1]);
       case "lab": return viewLab(parts[1]);
       case "student": return viewStudent();
       case "test": return viewTest(parts[1]);
@@ -39,11 +40,11 @@ function viewHome() {
     <p class="eyebrow">7, 8, 10-сыныптар · Жылу физикасы</p>
     <h1>Молекулалық физиканы <span>көзбен көріп</span> үйрену</h1>
     <p class="lede">Интерактивті модельдер, «болжа – бақыла – түсіндір» жұмыс парақтары, үш сатылы диагностикалық тест және мұғалімге арналған нәтижелер талдауы бір ортада жиналған. Барлығы қазақ тілінде.</p>
-    <div class="btns"><a class="btn primary" href="#/student">Оқушы ретінде кіру</a><a class="btn" href="#/teacher">Мұғалім кабинеті</a><a class="btn" href="#/models">Модельдерді ашу</a></div>
+    <div class="btns"><a class="btn primary" href="#/student">Оқушы ретінде кіру</a><a class="btn" href="#/teacher">Мұғалім кабинеті</a><a class="btn" href="#/grades">Оқулық бойынша тақырыптар</a></div>
   </section>
   <section class="grid3">
-    <div class="panel"><span class="label">1-қадам</span><h2>Бастапқы тест</h2><p>12 сұрақ, әрқайсысы үш бөліктен тұрады: жауап, негіздеме, сенімділік. Тест оқушының қай қате түсінігі бар екенін анықтайды.</p></div>
-    <div class="panel"><span class="label">2-қадам</span><h2>Виртуалды зертхана</h2><p>Төрт модель: Максвелл таралуы, Броун қозғалысы, газ заңдары, диффузия. Әр модельде жұмыс парағы мен ЖИ-көмекші бар.</p></div>
+    <div class="panel"><span class="label">1-қадам</span><h2>Бастапқы тест</h2><p>Әр сыныпқа жеке тест (8–12 сұрақ). Әр сұрақ үш бөліктен тұрады: жауап, негіздеме, сенімділік. Тест оқушының қай қате түсінігі бар екенін анықтайды.</p></div>
+    <div class="panel"><span class="label">2-қадам</span><h2>Виртуалды зертхана</h2><p>Сегіз модель 7, 8, 10 және 11-сынып оқулықтарының молекулалық физика тарауларына байланған. Әр модельде жұмыс парағы мен ЖИ-көмекші бар.</p></div>
     <div class="panel"><span class="label">3-қадам</span><h2>Қорытынды тест және талдау</h2><p>Мұғалім кабинеті Хейк бойынша нормаланған өсімді, Коэн d әсер мөлшерін, t-критерийді және қате түсініктердің өзгерісін есептейді.</p></div>
   </section>
   <section class="panel">
@@ -60,6 +61,23 @@ function viewModels() {
   render(`<section class="panel"><h2>Интерактивті модельдер</h2>
     <p class="muted">Әр модель үлгілік бағдарламаның оқу мақсатына және оқушылардың жиі кездесетін қате түсініктеріне сүйенеді.</p>
     <div class="cards">${Object.entries(MODELS).map(([k, m]) => modelCard(k, m)).join("")}</div></section>`);
+}
+
+/* ---------------- оқулық бойынша тақырыптар ---------------- */
+function viewGrades(g) {
+  const cur = CURRICULUM.find(c => String(c.grade) === g) || CURRICULUM[0];
+  render(`<section class="panel">
+    <h2>Оқулықтағы молекулалық физика тақырыптары</h2>
+    <p class="muted">Әр параграфқа сәйкес модель мен тест сұрақтары берілген. Сыныпты таңдаңыз.</p>
+    <nav class="subnav">${CURRICULUM.map(c => `<a href="#/grades/${c.grade}" aria-current="${c === cur ? "page" : "false"}">${c.grade}-сынып</a>`).join("")}</nav>
+    <p class="small muted">${esc(cur.book)}</p>
+    ${cur.note ? `<p class="note">${esc(cur.note)}</p>` : ""}
+    ${cur.chapters.map(ch => `<div class="chap"><h3>${esc(ch.ch)}</h3><ul class="topics">${ch.items.map(([t, ms]) => `<li><span>${esc(t)}</span><span class="tlinks">${ms.map(k => `<a class="pill" href="#/lab/${k}">${esc(MODELS[k].title)}</a>`).join("")}</span></li>`).join("")}</ul></div>`).join("")}
+  </section>
+  ${cur.chapters.length ? `<section class="panel"><h2>${cur.grade}-сыныптың диагностикалық тесті</h2>
+    <p class="muted small">Бастапқы және қорытынды тестте бірдей сұрақтар беріледі. Әр жалған нұсқа белгілі бір қате түсінікке сәйкес келеді.</p>
+    <ol class="tlist">${testFor(cur.grade).map(q => `<li><strong>${esc(q.text)}</strong> <span class="muted small">(${esc(q.topic)}; тексерілетін қате түсініктер: ${[...new Set(q.opts.map(o => o[1]).filter(t => MISCONCEPTIONS[t]))].join(", ") || "–"})</span></li>`).join("")}</ol>
+  </section>` : ""}`);
 }
 
 /* ---------------- зертхана ---------------- */
@@ -133,14 +151,14 @@ async function viewStudent() {
   }
   const [res, wss] = await Promise.all([S.myRecords("results"), S.myRecords("worksheets")]);
   const pre = res.find(r => r.type === "pre"), post = res.find(r => r.type === "post");
-  const done = new Set(wss.map(w => w.model));
+  const mine = modelsFor(s.grade), done = new Set(wss.map(w => w.model).filter(k => mine.some(([m]) => m === k)));
   const exp = s.group !== "ctrl";
   render(`<section class="panel">
     <div class="row between"><div><span class="label">${esc(s.className)} · №${esc(s.studentNo)}</span><h2>Менің жұмысым</h2></div><button id="out">Шығу</button></div>
     <ol class="steps">
       <li class="${pre ? "done" : ""}"><div><strong>Бастапқы тест</strong><span class="muted small">${pre ? `Тапсырылды: ${pre.score}%` : "Тақырыпты оқымас бұрын тапсырылады"}</span></div>${pre ? `<span class="pill ok">Дайын</span>` : `<a class="btn primary" href="#/test/pre">Бастау</a>`}</li>
-      ${exp ? `<li class="${done.size === 4 ? "done" : ""}"><div><strong>Виртуалды зертхана</strong><span class="muted small">Жұмыс парағы толтырылған модельдер: ${done.size} / 4</span>
-        <div class="cards tight">${Object.entries(MODELS).map(([k, m]) => `<a class="mcard sm" href="#/lab/${k}"><strong>${esc(m.title)}</strong><span class="pill ${done.has(k) ? "ok" : ""}">${done.has(k) ? "Толтырылды" : "Ашу"}</span></a>`).join("")}</div></div></li>`
+      ${exp ? `<li class="${done.size === mine.length ? "done" : ""}"><div><strong>Виртуалды зертхана · ${esc(s.grade)}-сынып</strong><span class="muted small">Жұмыс парағы толтырылған модельдер: ${done.size} / ${mine.length}</span>
+        <div class="cards tight">${mine.map(([k, m]) => `<a class="mcard sm" href="#/lab/${k}"><strong>${esc(m.title)}</strong><span class="pill ${done.has(k) ? "ok" : ""}">${done.has(k) ? "Толтырылды" : "Ашу"}</span></a>`).join("")}</div></div></li>`
       : `<li><div><strong>Сабақтар</strong><span class="muted small">Сіздің сыныбыңыз тақырыпты әдеттегі сабақтарда оқиды.</span></div></li>`}
       <li class="${post ? "done" : ""}"><div><strong>Қорытынды тест</strong><span class="muted small">${post ? `Тапсырылды: ${post.score}%` : "Мұғалім рұқсат бергенде, тақырып аяқталған соң тапсырылады"}</span></div>${post ? `<span class="pill ok">Дайын</span>` : pre ? `<a class="btn primary" href="#/test/post">Бастау</a>` : `<span class="pill">Алдымен бастапқы тест</span>`}</li>
     </ol>
@@ -154,8 +172,9 @@ async function viewTest(phase) {
   const s = S.getSession(); if (!s) { location.hash = "#/student"; return; }
   const res = await S.myRecords("results");
   if (res.find(r => r.type === phase)) { location.hash = "#/student"; return; }
+  const TEST = testFor(s.grade);
   render(`<section class="panel narrow">
-    <span class="label">${phase === "pre" ? "Бастапқы тест" : "Қорытынды тест"} · ${TEST.length} сұрақ</span>
+    <span class="label">${esc(s.grade)}-сынып · ${phase === "pre" ? "Бастапқы тест" : "Қорытынды тест"} · ${TEST.length} сұрақ</span>
     <h2>Молекулалық физика: диагностикалық тест</h2>
     <p class="muted">Әр сұраққа: 1) бір жауапты таңдаңыз, 2) неге солай ойлайтыныңызды қысқаша жазыңыз, 3) жауабыңызға сенімді ме екеніңізді белгілеңіз. Бұл баға емес, мұғалімге сіздің түсінігіңізді көрсетеді.</p>
   </section>
@@ -185,7 +204,7 @@ async function viewTest(phase) {
     const score = Math.round(100 * items.filter(i => i.correct).length / items.length);
     msg.textContent = "Сақталуда…";
     try {
-      await S.saveResult({ type: phase, score, items });
+      await S.saveResult({ type: phase, score, items, grade: String(s.grade || "") });
       render(`<section class="panel narrow"><span class="label">Тест аяқталды</span><h2>Нәтижеңіз: ${score}%</h2>
         <p>Дұрыс жауаптар: ${items.filter(i => i.correct).length} / ${items.length}.</p>
         <p class="muted">${phase === "pre" ? "Енді мұғалімнің нұсқауымен виртуалды зертханаға өтіңіз." : "Рақмет! Мұғалім нәтижелерді сыныппен бірге талқылайды."}</p>
@@ -238,15 +257,15 @@ function classes(d) {
   const cnt = code => new Set(d.results.filter(r => r.classCode === code).map(r => r.studentNo)).size;
   return `<div class="grid2">
   <section class="panel"><h2>Менің сыныптарым</h2>
-    ${d.classes.length ? `<div class="tablewrap"><table><thead><tr><th>Сынып</th><th>Код</th><th>Топ</th><th>Оқушылар</th></tr></thead><tbody>
-    ${d.classes.map(c => `<tr><td class="l">${esc(c.name)}</td><td><code class="code">${esc(c.code)}</code></td><td class="l">${GROUP[c.group] || "–"}</td><td>${cnt(c.code)}</td></tr>`).join("")}</tbody></table></div>`
+    ${d.classes.length ? `<div class="tablewrap"><table><thead><tr><th>Сынып</th><th>Код</th><th>Параллель</th><th>Топ</th><th>Оқушылар</th></tr></thead><tbody>
+    ${d.classes.map(c => `<tr><td class="l">${esc(c.name)}</td><td><code class="code">${esc(c.code)}</code></td><td>${esc(c.grade)}</td><td class="l">${GROUP[c.group] || "–"}</td><td>${cnt(c.code)}</td></tr>`).join("")}</tbody></table></div>`
       : `<p class="muted">Әзірге сынып жоқ. Оң жақтағы форма арқылы сынып ашыңыз, оқушыларға оның кодын беріңіз.</p>`}
     ${S.isDemo ? `<div class="note">Демо режим. Талдауды көру үшін мысал деректерді жүктеуге болады (2 сынып, 24 оқушыдан).<div class="btns"><button id="seed">Мысал деректерді жүктеу</button><button id="unseed">Барлық деректі өшіру</button></div></div>` : ""}
   </section>
   <section class="panel"><h2>Жаңа сынып ашу</h2>
     <form id="nc" class="form">
       <label for="cn">Сынып атауы</label><input id="cn" required placeholder="Мысалы: 8 «А»">
-      <label for="cg">Сынып</label><select id="cg"><option>7</option><option selected>8</option><option>9</option><option>10</option></select>
+      <label for="cg">Сынып</label><select id="cg"><option>7</option><option selected>8</option><option>9</option><option>10</option><option>11</option></select>
       <label for="cgr">Эксперименттегі рөлі</label><select id="cgr"><option value="exp">Эксперименттік топ (платформамен оқиды)</option><option value="ctrl">Бақылау тобы (тек тест тапсырады)</option></select>
       <button class="primary" type="submit">Сынып ашу</button><p id="ncm" class="small" role="status"></p>
     </form>
@@ -259,7 +278,7 @@ function bindClasses() {
     try { const code = await S.createClass({ name: document.getElementById("cn").value.trim(), grade: document.getElementById("cg").value, group: document.getElementById("cgr").value });
       m.textContent = "Сынып ашылды. Коды: " + code; setTimeout(route, 900); } catch (err) { m.textContent = "Қате: " + err.message; }
   });
-  const sd = document.getElementById("seed"); if (sd) sd.addEventListener("click", () => { S.seedDemo(TEST, tierOf); location.hash = "#/teacher/analytics"; });
+  const sd = document.getElementById("seed"); if (sd) sd.addEventListener("click", () => { S.seedDemo(testFor(8), tierOf); location.hash = "#/teacher/analytics"; });
   const ud = document.getElementById("unseed"); if (ud) ud.addEventListener("click", () => { S.clearDemo(); route(); });
 }
 
@@ -313,7 +332,8 @@ function analytics(d) {
   const W = ST.welchT(E.gain, C.gain), dPost = ST.cohenD(E.post, C.post), dGain = ST.cohenD(E.gain, C.gain);
   const preCmp = ST.welchT(E.pre, C.pre);
   const sumRow = (name, X) => `<tr><td class="l">${name}</td><td>${X.n}</td><td>${n1(X.preM)} ± ${n1(X.preS)}</td><td>${n1(X.postM)} ± ${n1(X.postS)}</td><td>${n1(X.g, 2)}</td><td>${n1(X.t.t, 2)}</td><td>${pfmt(X.t.p)}</td><td>${n1(X.dz, 2)}</td></tr>`;
-  const mtags = Object.keys(MISCONCEPTIONS);
+  const usedIds = new Set(d.classes.filter(c => sel.has(c.code)).flatMap(c => TESTS[+c.grade] || TESTS[8]));
+  const mtags = Object.keys(MISCONCEPTIONS).filter(m => [...usedIds].some(id => BANK[id].opts.some(o => o[1] === m)));
   const tE0 = tierRate(rows, "exp", "pre"), tE1 = tierRate(rows, "exp", "post"), tC0 = tierRate(rows, "ctrl", "pre"), tC1 = tierRate(rows, "ctrl", "post");
   const concl = [];
   if (E.n && C.n) {
