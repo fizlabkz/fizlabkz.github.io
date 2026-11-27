@@ -18,12 +18,14 @@ requestAnimationFrame(loop);
 /* ---------------- маршрутизатор ---------------- */
 async function route() {
   const parts = (location.hash.replace(/^#\/?/, "") || "home").split("/");
-  document.querySelectorAll("header nav a").forEach(a => a.setAttribute("aria-current", a.dataset.r === parts[0] ? "page" : "false"));
+  const navKey = parts[0] === "g" ? "g" + parts[1] : parts[0] === "lab" && parts[2] ? "g" + parts[2] : parts[0];
+  document.querySelectorAll("header nav a").forEach(a => a.setAttribute("aria-current", a.dataset.r === navKey ? "page" : "false"));
   try {
     switch (parts[0]) {
       case "models": return viewModels();
-      case "grades": return viewGrades(parts[1]);
-      case "lab": return viewLab(parts[1]);
+      case "g": return viewGrade(parts[1]);
+      case "grades": return viewGrade(parts[1]);
+      case "lab": return viewLab(parts[1], parts[2]);
       case "student": return viewStudent();
       case "test": return viewTest(parts[1]);
       case "teacher": return viewTeacher(parts[1] || "classes");
@@ -34,59 +36,73 @@ async function route() {
 window.addEventListener("hashchange", route);
 
 /* ---------------- басты бет ---------------- */
+const GRADES = [7, 8, 9, 10, 11];
+const curOf = g => CURRICULUM.find(c => c.grade === +g);
+const topicCount = g => (curOf(g)?.chapters || []).reduce((n, ch) => n + ch.items.length, 0);
 function viewHome() {
   render(`
   <section class="hero">
-    <p class="eyebrow">7, 8, 10-сыныптар · Жылу физикасы</p>
+    <p class="eyebrow">7–11-сыныптар · Жылу физикасы және молекулалық физика</p>
     <h1>Молекулалық физиканы <span>көзбен көріп</span> үйрену</h1>
-    <p class="lede">Интерактивті модельдер, «болжа – бақыла – түсіндір» жұмыс парақтары, үш сатылы диагностикалық тест және мұғалімге арналған нәтижелер талдауы бір ортада жиналған. Барлығы қазақ тілінде.</p>
-    <div class="btns"><a class="btn primary" href="#/student">Оқушы ретінде кіру</a><a class="btn" href="#/teacher">Мұғалім кабинеті</a><a class="btn" href="#/grades">Оқулық бойынша тақырыптар</a></div>
+    <p class="lede">Әр сыныптың өз бөлімі бар: оқулықтағы тақырыптар, сол тақырыптарға арналған интерактивті модельдер, жұмыс парақтары және диагностикалық тест. Барлығы қазақ тілінде.</p>
+    <div class="btns"><a class="btn primary" href="#/student">Оқушы ретінде кіру</a><a class="btn" href="#/teacher">Мұғалім кабинеті</a></div>
   </section>
+  <section class="gtiles">${GRADES.map(g => gradeTile(g)).join("")}</section>
   <section class="grid3">
-    <div class="panel"><span class="label">1-қадам</span><h2>Бастапқы тест</h2><p>Әр сыныпқа жеке тест (8–12 сұрақ). Әр сұрақ үш бөліктен тұрады: жауап, негіздеме, сенімділік. Тест оқушының қай қате түсінігі бар екенін анықтайды.</p></div>
-    <div class="panel"><span class="label">2-қадам</span><h2>Виртуалды зертхана</h2><p>Сегіз модель 7, 8, 10 және 11-сынып оқулықтарының молекулалық физика тарауларына байланған. Әр модельде жұмыс парағы мен ЖИ-көмекші бар.</p></div>
+    <div class="panel"><span class="label">1-қадам</span><h2>Бастапқы тест</h2><p>Әр сыныптың өз тесті бар. Әр сұрақ үш бөліктен тұрады: жауап, негіздеме, сенімділік. Тест оқушының қай қате түсінігі бар екенін анықтайды.</p></div>
+    <div class="panel"><span class="label">2-қадам</span><h2>Виртуалды зертхана</h2><p>Модельдер оқулық параграфтарына байланған. Әр модельде жұмыс парағы мен ЖИ-көмекші бар.</p></div>
     <div class="panel"><span class="label">3-қадам</span><h2>Қорытынды тест және талдау</h2><p>Мұғалім кабинеті Хейк бойынша нормаланған өсімді, Коэн d әсер мөлшерін, t-критерийді және қате түсініктердің өзгерісін есептейді.</p></div>
-  </section>
-  <section class="panel">
-    <h2>Модельдер</h2>
-    <div class="cards">${Object.entries(MODELS).map(([k, m]) => modelCard(k, m)).join("")}</div>
   </section>`);
 }
-function modelCard(k, m) {
-  return `<a class="mcard" href="#/lab/${k}"><span class="label">${esc(m.grade)}</span><strong>${esc(m.title)}</strong>
+function gradeTile(g) {
+  const ms = modelsFor(g), tc = topicCount(g);
+  return `<a class="gtile" href="#/g/${g}"><span class="gnum">${g}</span><span class="glabel">сынып</span>
+    <span class="small muted">${tc ? tc + " тақырып · " : g === 9 ? "8-сыныпты қайталау · " : ""}${ms.length} модель · ${testFor(g).length} сұрақ</span>
+    <span class="gmodels">${ms.map(([, m]) => esc(m.title)).join(", ")}</span></a>`;
+}
+function modelCard(k, m, g) {
+  return `<a class="mcard" href="#/lab/${k}${g ? "/" + g : ""}"><span class="label">${esc(m.grade)}</span><strong>${esc(m.title)}</strong>
     <span class="chips">${m.codes.map(c => `<span class="chip">${c}</span>`).join("")}</span>
     <span class="muted small">${m.mis.map(x => esc(MISCONCEPTIONS[x])).join("; ")}</span></a>`;
 }
 function viewModels() {
-  render(`<section class="panel"><h2>Интерактивті модельдер</h2>
+  render(`<section class="panel"><h2>Барлық интерактивті модельдер</h2>
     <p class="muted">Әр модель үлгілік бағдарламаның оқу мақсатына және оқушылардың жиі кездесетін қате түсініктеріне сүйенеді.</p>
     <div class="cards">${Object.entries(MODELS).map(([k, m]) => modelCard(k, m)).join("")}</div></section>`);
 }
 
-/* ---------------- оқулық бойынша тақырыптар ---------------- */
-function viewGrades(g) {
-  const cur = CURRICULUM.find(c => String(c.grade) === g) || CURRICULUM[0];
-  render(`<section class="panel">
-    <h2>Оқулықтағы молекулалық физика тақырыптары</h2>
-    <p class="muted">Әр параграфқа сәйкес модель мен тест сұрақтары берілген. Сыныпты таңдаңыз.</p>
-    <nav class="subnav">${CURRICULUM.map(c => `<a href="#/grades/${c.grade}" aria-current="${c === cur ? "page" : "false"}">${c.grade}-сынып</a>`).join("")}</nav>
-    <p class="small muted">${esc(cur.book)}</p>
-    ${cur.note ? `<p class="note">${esc(cur.note)}</p>` : ""}
-    ${cur.chapters.map(ch => `<div class="chap"><h3>${esc(ch.ch)}</h3><ul class="topics">${ch.items.map(([t, ms]) => `<li><span>${esc(t)}</span><span class="tlinks">${ms.map(k => `<a class="pill" href="#/lab/${k}">${esc(MODELS[k].title)}</a>`).join("")}</span></li>`).join("")}</ul></div>`).join("")}
+/* ---------------- сынып бөлімі ---------------- */
+function viewGrade(g) {
+  g = GRADES.includes(+g) ? +g : 7;
+  const cur = curOf(g), ms = modelsFor(g), test = testFor(g);
+  render(`
+  <nav class="subnav gradenav">${GRADES.map(x => `<a href="#/g/${x}" aria-current="${x === g ? "page" : "false"}">${x}-сынып</a>`).join("")}</nav>
+  <section class="ghero">
+    <div class="gbig">${g}<span>-сынып</span></div>
+    <div><p class="eyebrow">Молекулалық физика бөлімі</p>
+      <p class="lede" style="margin:4px 0 0">${esc(cur.book)}</p>
+      <div class="gstats"><span><b>${topicCount(g)}</b> тақырып</span><span><b>${ms.length}</b> модель</span><span><b>${test.length}</b> тест сұрағы</span></div></div>
   </section>
-  ${cur.chapters.length ? `<section class="panel"><h2>${cur.grade}-сыныптың диагностикалық тесті</h2>
-    <p class="muted small">Бастапқы және қорытынды тестте бірдей сұрақтар беріледі. Әр жалған нұсқа белгілі бір қате түсінікке сәйкес келеді.</p>
-    <ol class="tlist">${testFor(cur.grade).map(q => `<li><strong>${esc(q.text)}</strong> <span class="muted small">(${esc(q.topic)}; тексерілетін қате түсініктер: ${[...new Set(q.opts.map(o => o[1]).filter(t => MISCONCEPTIONS[t]))].join(", ") || "–"})</span></li>`).join("")}</ol>
-  </section>` : ""}`);
+  ${cur.note ? `<p class="note">${esc(cur.note)}</p>` : ""}
+  ${cur.chapters.length ? `<section class="panel"><h2>Тараулар мен тақырыптар</h2>
+    ${cur.chapters.map(ch => `<div class="chap"><h3>${esc(ch.ch)}</h3><ul class="topics">${ch.items.map(([t, mk]) => `<li><span>${esc(t)}</span><span class="tlinks">${mk.map(k => `<a class="pill" href="#/lab/${k}/${g}">${esc(MODELS[k].title)}</a>`).join("")}</span></li>`).join("")}</ul></div>`).join("")}
+  </section>` : ""}
+  <section class="panel"><h2>${g}-сыныпқа арналған модельдер</h2>
+    <div class="cards">${ms.map(([k, m]) => modelCard(k, m, g)).join("")}</div></section>
+  <section class="panel">
+    <div class="row between flexwrap"><h2>${g}-сыныптың диагностикалық тесті</h2><a class="btn primary" href="#/student">Тестті тапсыру</a></div>
+    <p class="muted small">Бастапқы және қорытынды тестте бірдей сұрақтар беріледі. Әр жалған нұсқа белгілі бір қате түсінікке сәйкес келеді. Мұғалім кабинетінде сыныпты «${g}» деп ашқанда оқушыларға осы тест пен осы модельдер ашылады.</p>
+    <ol class="tlist">${test.map(q => `<li><strong>${esc(q.text)}</strong> <span class="muted small">(${esc(q.topic)}${[...new Set(q.opts.map(o => o[1]).filter(t => MISCONCEPTIONS[t]))].length ? "; қате түсініктер: " + [...new Set(q.opts.map(o => o[1]).filter(t => MISCONCEPTIONS[t]))].join(", ") : ""})</span></li>`).join("")}</ol>
+  </section>`);
 }
 
 /* ---------------- зертхана ---------------- */
-async function viewLab(key) {
+async function viewLab(key, g) {
   const m = MODELS[key]; if (!m) return viewModels();
   const s = S.getSession();
   const mine = s ? (await S.myRecords("worksheets")).filter(w => w.model === key).sort((a, b) => (b.createdAt?.seconds || b.createdAt || 0) - (a.createdAt?.seconds || a.createdAt || 0))[0] : null;
   render(`
-  <p class="crumbs"><a href="#/models">Модельдер</a> / ${esc(m.title)}</p>
+  <p class="crumbs">${g ? `<a href="#/g/${esc(g)}">${esc(g)}-сынып</a>` : `<a href="#/models">Модельдер</a>`} / ${esc(m.title)}</p>
   <div class="lab">
     ${m.tpl.stage}
     <div class="side">
@@ -158,7 +174,7 @@ async function viewStudent() {
     <ol class="steps">
       <li class="${pre ? "done" : ""}"><div><strong>Бастапқы тест</strong><span class="muted small">${pre ? `Тапсырылды: ${pre.score}%` : "Тақырыпты оқымас бұрын тапсырылады"}</span></div>${pre ? `<span class="pill ok">Дайын</span>` : `<a class="btn primary" href="#/test/pre">Бастау</a>`}</li>
       ${exp ? `<li class="${done.size === mine.length ? "done" : ""}"><div><strong>Виртуалды зертхана · ${esc(s.grade)}-сынып</strong><span class="muted small">Жұмыс парағы толтырылған модельдер: ${done.size} / ${mine.length}</span>
-        <div class="cards tight">${mine.map(([k, m]) => `<a class="mcard sm" href="#/lab/${k}"><strong>${esc(m.title)}</strong><span class="pill ${done.has(k) ? "ok" : ""}">${done.has(k) ? "Толтырылды" : "Ашу"}</span></a>`).join("")}</div></div></li>`
+        <div class="cards tight">${mine.map(([k, m]) => `<a class="mcard sm" href="#/lab/${k}/${esc(s.grade)}"><strong>${esc(m.title)}</strong><span class="pill ${done.has(k) ? "ok" : ""}">${done.has(k) ? "Толтырылды" : "Ашу"}</span></a>`).join("")}</div></div></li>`
       : `<li><div><strong>Сабақтар</strong><span class="muted small">Сіздің сыныбыңыз тақырыпты әдеттегі сабақтарда оқиды.</span></div></li>`}
       <li class="${post ? "done" : ""}"><div><strong>Қорытынды тест</strong><span class="muted small">${post ? `Тапсырылды: ${post.score}%` : "Мұғалім рұқсат бергенде, тақырып аяқталған соң тапсырылады"}</span></div>${post ? `<span class="pill ok">Дайын</span>` : pre ? `<a class="btn primary" href="#/test/post">Бастау</a>` : `<span class="pill">Алдымен бастапқы тест</span>`}</li>
     </ol>
